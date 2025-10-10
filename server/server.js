@@ -195,6 +195,9 @@ io.on("connection", (socket) => {
         winner: result.winner,
         invalidWin: result.invalidWin,
         message: result.message,
+        playerFinished: result.playerFinished,
+        finishingOrder: result.finishingOrder,
+        remainingPlayers: result.remainingPlayers,
       });
 
       broadcastGameState(playerInfo.roomId);

@@ -68,6 +68,12 @@ class UnoClient {
         this.showNotificationCard(data.message, "error");
       }
 
+      // Handle player finishing
+      if (data.playerFinished && !data.gameEnded) {
+        const finishMessage = `🎉 ${data.playerFinished.name} finished in position ${data.finishingOrder.length}! ${data.remainingPlayers} players remaining.`;
+        this.showNotificationCard(finishMessage, "success");
+      }
+
       this.showMessage(message, data.invalidWin ? "warning" : "info");
 
       if (data.gameEnded) {
@@ -592,6 +598,52 @@ class UnoClient {
     document.getElementById(
       "winner-announcement"
     ).textContent = `🎉 ${winner.name} wins the game! 🎉`;
+
+    // Show finishing order
+    if (
+      this.gameState.finishingOrder &&
+      this.gameState.finishingOrder.length > 0
+    ) {
+      const finishingElement = document.getElementById("finishing-order");
+      finishingElement.innerHTML = "<h4>Finishing Order:</h4>";
+
+      this.gameState.finishingOrder.forEach((finisher, index) => {
+        const finishItem = document.createElement("div");
+        finishItem.className = "finish-item";
+
+        let positionText = "";
+        let emoji = "";
+        if (index === 0) {
+          positionText = "1st - WINNER";
+          emoji = "🥇";
+        } else if (index === 1) {
+          positionText = "2nd";
+          emoji = "🥈";
+        } else if (index === 2) {
+          positionText = "3rd";
+          emoji = "🥉";
+        } else if (finisher.isLoser) {
+          positionText = `${finisher.position}th - LOSER`;
+          emoji = "💀";
+        } else {
+          positionText = `${finisher.position}th`;
+          emoji = "🏁";
+        }
+
+        finishItem.innerHTML = `
+          <span>${emoji} ${positionText}</span>
+          <span>${finisher.playerName}</span>
+        `;
+
+        if (finisher.isLoser) {
+          finishItem.classList.add("loser");
+        } else if (index === 0) {
+          finishItem.classList.add("winner");
+        }
+
+        finishingElement.appendChild(finishItem);
+      });
+    }
 
     // Show final scores
     const scoresElement = document.getElementById("final-scores");

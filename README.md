@@ -35,6 +35,16 @@ _This adds strategic depth and prevents the +4 from being an unstoppable "I win"
 - No need to remember to press a button - the game handles it automatically
 - Keeps the game flowing without interruptions
 
+#### **Continuous Play Rule** 🏁
+
+- **Official Rule**: Game ends when first player finishes. Other players' positions are unclear.
+- **Our Rule**: Game continues until only one player remains!
+  - **1st Place**: First to finish gets the win 🥇
+  - **2nd, 3rd, etc.**: Clear finishing order for all players 🥈🥉
+  - **Last Place**: Final player becomes the official loser 💀
+
+_This creates more engagement as everyone plays to avoid being last, not just to win first. No more "dead time" after someone wins!_
+
 ## Features
 
 - Real-time multiplayer gameplay for 2-10 players

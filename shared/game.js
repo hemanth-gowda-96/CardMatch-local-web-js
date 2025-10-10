@@ -73,6 +73,8 @@ class UnoGame {
     this.drawCount = 0; // For stacking draw cards
     this.lastPlayedWasDraw4 = false; // Track if last card was wild_draw4
     this.winner = null;
+    this.finishingOrder = []; // Track order of players finishing the game
+    this.activePlayers = new Set(); // Track players still in the game
     this.scores = new Map(); // Track cumulative scores across rounds
   }
 
@@ -133,6 +135,11 @@ class UnoGame {
     }
 
     this.gameState = GAME_STATES.STARTING;
+
+    // Reset game state
+    this.finishingOrder = [];
+    this.activePlayers = new Set(this.playerOrder);
+    this.lastPlayedWasDraw4 = false;
 
     // Reset all players
     this.players.forEach((player) => player.reset());
@@ -291,10 +298,60 @@ class UnoGame {
         };
       }
 
-      this.winner = player;
-      this.gameState = GAME_STATES.FINISHED;
-      this.calculateScores();
-      return { gameEnded: true, winner: player };
+      // Player finished - add to finishing order and remove from active players
+      this.finishingOrder.push({
+        playerId: player.id,
+        playerName: player.name,
+        position: this.finishingOrder.length + 1,
+      });
+      this.activePlayers.delete(player.id);
+
+      // Remove finished player from playerOrder
+      const playerIndex = this.playerOrder.indexOf(player.id);
+      this.playerOrder.splice(playerIndex, 1);
+
+      // Adjust current player index if needed
+      if (
+        this.currentPlayerIndex >= playerIndex &&
+        this.currentPlayerIndex > 0
+      ) {
+        this.currentPlayerIndex--;
+      }
+      if (this.currentPlayerIndex >= this.playerOrder.length) {
+        this.currentPlayerIndex = 0;
+      }
+
+      // Check if game is over (only one player left)
+      if (this.activePlayers.size <= 1) {
+        // Add the last player as the loser
+        if (this.activePlayers.size === 1) {
+          const lastPlayerId = Array.from(this.activePlayers)[0];
+          const lastPlayer = this.players.get(lastPlayerId);
+          this.finishingOrder.push({
+            playerId: lastPlayer.id,
+            playerName: lastPlayer.name,
+            position: this.finishingOrder.length + 1,
+            isLoser: true,
+          });
+        }
+
+        this.winner = this.players.get(this.finishingOrder[0].playerId);
+        this.gameState = GAME_STATES.FINISHED;
+        this.calculateScores();
+        return {
+          gameEnded: true,
+          winner: this.winner,
+          finishingOrder: this.finishingOrder,
+          playerFinished: player,
+        };
+      }
+
+      return {
+        gameEnded: false,
+        playerFinished: player,
+        finishingOrder: this.finishingOrder,
+        remainingPlayers: this.activePlayers.size,
+      };
     }
 
     // Handle special card effects
@@ -517,6 +574,9 @@ class UnoGame {
         handSize: p.getHandSize(),
         isReady: p.isReady,
         score: this.scores.get(p.id) || 0,
+        isFinished:
+          !this.activePlayers.has(p.id) &&
+          this.gameState === GAME_STATES.PLAYING,
       })),
       playerOrder: this.playerOrder,
       currentPlayer: currentPlayer?.id || null,
@@ -528,6 +588,8 @@ class UnoGame {
       drawCount: this.drawCount,
       lastPlayedWasDraw4: this.lastPlayedWasDraw4,
       winner: this.winner?.id || null,
+      finishingOrder: this.finishingOrder,
+      activePlayers: Array.from(this.activePlayers),
     };
   }
 
