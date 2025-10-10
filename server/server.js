@@ -194,6 +194,7 @@ io.on("connection", (socket) => {
         gameEnded: result.gameEnded,
         winner: result.winner,
         invalidWin: result.invalidWin,
+        unoViolation: result.unoViolation,
         message: result.message,
         playerFinished: result.playerFinished,
         finishingOrder: result.finishingOrder,

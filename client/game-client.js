@@ -68,13 +68,21 @@ class UnoClient {
         this.showNotificationCard(data.message, "error");
       }
 
+      if (data.unoViolation) {
+        message = `${data.playerName} didn't say UNO! 5 card penalty!`;
+        this.showNotificationCard(data.message, "warning");
+      }
+
       // Handle player finishing
       if (data.playerFinished && !data.gameEnded) {
         const finishMessage = `🎉 ${data.playerFinished.name} finished in position ${data.finishingOrder.length}! ${data.remainingPlayers} players remaining.`;
         this.showNotificationCard(finishMessage, "success");
       }
 
-      this.showMessage(message, data.invalidWin ? "warning" : "info");
+      this.showMessage(
+        message,
+        data.invalidWin || data.unoViolation ? "warning" : "info"
+      );
 
       if (data.gameEnded) {
         this.handleGameEnd(data.winner);
@@ -544,20 +552,25 @@ class UnoClient {
 
     // If there are pending draws, check special rules
     if (this.gameState.drawCount > 0) {
-      // Can play draw cards to stack
-      if (card.value === "draw2" || card.value === "wild_draw4") {
-        return true;
-      }
-
-      // Special rule: If last card was +4 and color was declared,
-      // can play Skip or Reverse of that color
-      if (
-        this.gameState.lastPlayedWasDraw4 &&
-        declaredColor &&
-        (card.value === "skip" || card.value === "reverse") &&
-        card.color === declaredColor
-      ) {
-        return true;
+      if (this.gameState.lastPlayedWasDraw4) {
+        // Special rule: After +4, only Skip/Reverse of declared color or another +4 allowed
+        if (card.value === "wild_draw4") {
+          return true;
+        }
+        if (
+          declaredColor &&
+          (card.value === "skip" || card.value === "reverse") &&
+          card.color === declaredColor
+        ) {
+          return true;
+        }
+        // +2 cards are NOT allowed on top of +4
+        return false;
+      } else {
+        // Normal draw stacking: can play draw2 or wild_draw4
+        if (card.value === "draw2" || card.value === "wild_draw4") {
+          return true;
+        }
       }
 
       return false; // Must draw otherwise
@@ -645,21 +658,9 @@ class UnoClient {
       });
     }
 
-    // Show final scores
+    // Hide final scores section since we only show finishing order
     const scoresElement = document.getElementById("final-scores");
-    scoresElement.innerHTML = "<h4>Final Scores:</h4>";
-
-    this.gameState.players
-      .sort((a, b) => b.score - a.score)
-      .forEach((player) => {
-        const scoreItem = document.createElement("div");
-        scoreItem.className = "score-item";
-        scoreItem.innerHTML = `
-                    <span>${player.name}</span>
-                    <span>${player.score} points</span>
-                `;
-        scoresElement.appendChild(scoreItem);
-      });
+    scoresElement.style.display = "none";
 
     setTimeout(() => {
       this.showScreen("game-over-screen");

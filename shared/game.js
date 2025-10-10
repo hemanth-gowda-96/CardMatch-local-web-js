@@ -228,30 +228,52 @@ class UnoGame {
       throw new Error("Invalid card play");
     }
 
-    // Handle draw stacking - if there are pending draws, player must draw or play a draw card
+    // Handle draw stacking - if there are pending draws, player must draw or play appropriate cards
     if (this.drawCount > 0) {
       const card = player.hand[cardIndex];
       let canPlayCard = false;
 
-      // Can play draw cards to stack
-      if (card.value === "draw2" || card.value === "wild_draw4") {
-        canPlayCard = true;
-      }
-
-      // Special rule: If there's a pending +4 and a color was declared,
-      // can play Skip or Reverse of that color to counter the +4
-      if (
-        this.lastPlayedWasDraw4 &&
-        this.declaredColor &&
-        (card.value === "skip" || card.value === "reverse") &&
-        card.color === this.declaredColor
-      ) {
-        canPlayCard = true;
+      if (this.lastPlayedWasDraw4) {
+        // Special rule: After +4, only Skip/Reverse of declared color or another +4 allowed
+        if (card.value === "wild_draw4") {
+          canPlayCard = true;
+        } else if (
+          this.declaredColor &&
+          (card.value === "skip" || card.value === "reverse") &&
+          card.color === this.declaredColor
+        ) {
+          canPlayCard = true;
+        }
+        // +2 cards are NOT allowed on top of +4
+      } else {
+        // Normal draw stacking: can play draw2 or wild_draw4
+        if (card.value === "draw2" || card.value === "wild_draw4") {
+          canPlayCard = true;
+        }
       }
 
       if (!canPlayCard) {
-        throw new Error("Must draw cards or play a draw card");
+        if (this.lastPlayedWasDraw4) {
+          throw new Error(
+            `After +4, you can only play Skip/Reverse of ${this.declaredColor} color or another +4`
+          );
+        } else {
+          throw new Error("Must draw cards or play a draw card");
+        }
       }
+    }
+
+    // Check for UNO penalty BEFORE playing the card
+    const handSizeBeforePlay = player.getHandSize();
+    if (handSizeBeforePlay === 2 && !player.saidUno) {
+      // Player will have 1 card after playing but didn't say UNO - penalty!
+      const penaltyCards = this.deck.drawCards(5);
+      player.addCards(penaltyCards);
+      return {
+        gameEnded: false,
+        unoViolation: true,
+        message: `${player.name} didn't say UNO! Draw 5 penalty cards.`,
+      };
     }
 
     const playedCard = player.removeCard(cardIndex);
@@ -273,13 +295,9 @@ class UnoGame {
     // Reset draw flag
     player.hasDrawnCard = false;
 
-    // Check for UNO (1 card left)
-    if (player.getHandSize() === 1) {
-      if (!player.saidUno) {
-        // Penalty for not saying UNO - draw 2 cards
-        const penaltyCards = this.deck.drawCards(2);
-        player.addCards(penaltyCards);
-      }
+    // Reset UNO flag if player has more than 1 card after playing
+    if (player.getHandSize() > 1) {
+      player.saidUno = false;
     }
 
     // Check for win - cannot win with action cards
@@ -337,7 +355,6 @@ class UnoGame {
 
         this.winner = this.players.get(this.finishingOrder[0].playerId);
         this.gameState = GAME_STATES.FINISHED;
-        this.calculateScores();
         return {
           gameEnded: true,
           winner: this.winner,
@@ -450,6 +467,11 @@ class UnoGame {
       this.drawCount = 0;
       this.lastPlayedWasDraw4 = false; // Reset flag after drawing
 
+      // Reset UNO flag since player now has more cards
+      if (player.getHandSize() > 1) {
+        player.saidUno = false;
+      }
+
       // Check if any of the drawn cards are playable
       let hasPlayableCard = false;
       for (const card of cards) {
@@ -469,6 +491,11 @@ class UnoGame {
     if (card) {
       player.addCards(card);
       player.hasDrawnCard = true;
+
+      // Reset UNO flag since player now has more cards
+      if (player.getHandSize() > 1) {
+        player.saidUno = false;
+      }
 
       // Check if drawn card is playable
       const canPlay = card.canPlayOn(

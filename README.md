@@ -8,20 +8,23 @@ The official UNO rules can be frustrating and boring. We've implemented **custom
 
 ### 🚀 Our Custom Rules (Better Than Official!)
 
-#### **+4 Defense Rule** ⚡
+#### **Enhanced +4 Defense Rule** ⚡
 
 - **Official Rule**: When someone plays a Wild Draw 4, you're forced to draw 4 cards. Period. Boring!
-- **Our Rule**: If you have a **Skip** or **Reverse** card of the declared color, you can play it to:
-  - **Skip**: Counter the +4 completely - you don't draw any cards!
-  - **Reverse**: Send the +4 back to the original player who played it!
+- **Our Rule**: After a +4 is played, you have limited but powerful options:
+  - **Another +4**: Stack it to pass 8 cards to the next player!
+  - **Skip** (declared color): Counter the +4 completely - you don't draw any cards!
+  - **Reverse** (declared color): Send the +4 back to the original player who played it!
+  - **❌ No +2 Cards**: Cannot play Draw 2 cards on top of +4 (different card types don't stack)
 
-_This adds strategic depth and prevents the +4 from being an unstoppable "I win" card._
+_This creates strategic +4 battles while maintaining logical card interaction rules._
 
 #### **Strategic Card Stacking** 📚
 
-- Draw 2 cards can be stacked with other Draw 2 or Wild Draw 4 cards
-- Creates exciting chain reactions where multiple players might end up drawing cards
-- Makes the game more dynamic and unpredictable
+- **Draw 2 Stacking**: Draw 2 cards can be stacked with other Draw 2 cards only
+- **Wild +4 Stacking**: Wild Draw 4 cards can be stacked with other Wild Draw 4 cards
+- **No Cross-Stacking**: +2 and +4 cards cannot be mixed (maintains card type logic)
+- Creates exciting same-type chain reactions and strategic depth
 
 #### **Anti-Camping Rule** 🏕️
 
@@ -31,9 +34,10 @@ _This adds strategic depth and prevents the +4 from being an unstoppable "I win"
 
 #### **UNO Penalty System** ⚠️
 
-- Automatic 2-card penalty if you don't call UNO when you have 1 card
+- Automatic 5-card penalty if you don't call UNO when going to 1 card
+- Penalty triggers immediately when playing your second-to-last card without saying UNO
 - No need to remember to press a button - the game handles it automatically
-- Keeps the game flowing without interruptions
+- Harsh penalty ensures players take UNO calls seriously!
 
 #### **Continuous Play Rule** 🏁
 
@@ -126,6 +130,7 @@ npm run dev
 **Official UNO Problems:**
 
 - Wild Draw 4 is overpowered and undefendable ❌
+- Illogical card stacking (mixing +2 and +4) ❌
 - Winning with action cards feels cheap ❌
 - Limited strategic depth ❌
 - Frustrating "gotcha" moments ❌
@@ -133,6 +138,7 @@ npm run dev
 **Our Solution:**
 
 - Every card has a counter-strategy ✅
+- Logical card type interactions ✅
 - More skill-based gameplay ✅
 - Strategic planning required ✅
 - Fair and fun for everyone ✅
