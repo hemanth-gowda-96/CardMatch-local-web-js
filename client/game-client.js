@@ -454,8 +454,13 @@ class UnoClient {
   }
 
   updatePlayerCircle(state) {
-    const playersContainer = document.getElementById("players-positions");
+    const playersContainer = document.getElementById("players-list-game");
     const turnDirection = document.getElementById("turn-direction");
+
+    console.log("Updating player circle with state:", state);
+    console.log("Players container:", playersContainer);
+    console.log("Player order:", state.playerOrder);
+    console.log("Players:", state.players);
 
     // Update direction indicator
     turnDirection.textContent = state.direction === 1 ? "↻" : "↺";
@@ -463,31 +468,24 @@ class UnoClient {
 
     playersContainer.innerHTML = "";
 
-    if (!state.playerOrder || state.playerOrder.length === 0) return;
+    if (!state.playerOrder || state.playerOrder.length === 0) {
+      console.log("No player order found, returning");
+      return;
+    }
 
     const totalPlayers = state.playerOrder.length;
-    const radius = 120; // Distance from center
-    const centerX = 150; // Half of container width
-    const centerY = 150; // Half of container height
 
-    // Find current player's position in the order
-    const myIndex = state.playerOrder.findIndex((id) => id === this.playerId);
-
-    // Arrange players in circle, starting with current player at top
+    // Arrange players in a row
     state.playerOrder.forEach((playerId, orderIndex) => {
       const player = state.players.find((p) => p.id === playerId);
-      if (!player) return;
+      if (!player) {
+        console.log("Player not found for ID:", playerId);
+        return;
+      }
 
-      // Calculate angle for this position (start from top, go clockwise)
-      const angle =
-        orderIndex * (360 / totalPlayers) * (Math.PI / 180) - Math.PI / 2;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-
+      console.log("Creating player element for:", player.name);
       const playerElement = document.createElement("div");
       playerElement.className = "player-position";
-      playerElement.style.left = `${x}px`;
-      playerElement.style.top = `${y}px`;
 
       // Add special classes
       if (player.id === this.playerId) {
@@ -499,10 +497,13 @@ class UnoClient {
       }
 
       // Mark next player
+      const currentPlayerIndex = state.playerOrder.findIndex(
+        (id) => id === state.currentPlayer
+      );
       const nextPlayerIndex =
         state.direction === 1
-          ? (state.currentPlayerIndex + 1) % totalPlayers
-          : (state.currentPlayerIndex - 1 + totalPlayers) % totalPlayers;
+          ? (currentPlayerIndex + 1) % totalPlayers
+          : (currentPlayerIndex - 1 + totalPlayers) % totalPlayers;
 
       if (orderIndex === nextPlayerIndex && state.currentPlayer !== player.id) {
         playerElement.classList.add("next-player");
@@ -519,32 +520,14 @@ class UnoClient {
         <div class="player-cards-circle">${player.handSize} cards</div>
       `;
 
+      console.log("Appending player element:", playerElement);
       playersContainer.appendChild(playerElement);
-
-      // Add turn arrow pointing to current player
-      if (player.id === state.currentPlayer) {
-        this.addTurnArrow(x, y, centerX, centerY);
-      }
     });
-  }
 
-  addTurnArrow(playerX, playerY, centerX, centerY) {
-    const playersContainer = document.getElementById("players-positions");
-
-    // Calculate position for arrow (closer to center)
-    const arrowDistance = 40; // Distance from player toward center
-    const angle = Math.atan2(playerY - centerY, playerX - centerX);
-    const arrowX = playerX - arrowDistance * Math.cos(angle);
-    const arrowY = playerY - arrowDistance * Math.sin(angle);
-
-    const arrow = document.createElement("div");
-    arrow.className = "turn-arrow";
-    arrow.style.left = `${arrowX}px`;
-    arrow.style.top = `${arrowY}px`;
-    arrow.style.transform = "translate(-50%, -50%)";
-    arrow.textContent = "👈";
-
-    playersContainer.appendChild(arrow);
+    console.log(
+      "Final container children count:",
+      playersContainer.children.length
+    );
   }
 
   canPlayCard(card) {

@@ -72,10 +72,6 @@
           <div class="game-status">
             <h3>Current Player: <span id="current-player"></span></h3>
             <div id="direction-indicator">↻</div>
-            <div id="game-notifications">
-              <h4>Game Activity</h4>
-              <div id="notification-cards"></div>
-            </div>
           </div>
 
           <div class="center-area">
@@ -83,17 +79,6 @@
               <div id="deck" class="card-stack">
                 <div class="card back"></div>
                 <span>Deck</span>
-              </div>
-              <div class="deck-actions">
-                <button id="draw-card-btn" class="btn btn-primary btn-small">
-                  Draw Card
-                </button>
-                <button
-                  id="pass-turn-btn"
-                  class="btn btn-secondary btn-small hidden"
-                >
-                  Pass Turn
-                </button>
               </div>
             </div>
 
@@ -106,15 +91,18 @@
               Declared: <span id="declared-color-value"></span>
             </div>
           </div>
+
+          <div id="game-notifications">
+            <h4>Game Activity</h4>
+            <div id="notification-cards"></div>
+          </div>
         </div>
 
-        <!-- Player Circle -->
-        <div id="player-circle">
+        <!-- Players Row -->
+        <div id="players-row">
           <h4>Players <span id="turn-direction">↻</span></h4>
-          <div id="players-circle-container">
-            <div id="players-positions">
-              <!-- Players will be positioned in a circle -->
-            </div>
+          <div id="players-list-game">
+            <!-- Players will be displayed horizontally -->
           </div>
           <div id="player-legend">
             <div class="legend-item">
@@ -131,6 +119,22 @@
             </div>
           </div>
         </div>
+
+        <!-- Game Actions Above Hand -->
+        <div id="hand-actions">
+          <div class="deck-actions">
+            <button id="draw-card-btn" class="btn btn-primary btn-small">
+              Draw Card
+            </button>
+            <button
+              id="pass-turn-btn"
+              class="btn btn-secondary btn-small hidden"
+            >
+              Pass Turn
+            </button>
+          </div>
+        </div>
+
         <!-- Your Hand -->
         <div id="your-hand">
           <h4>

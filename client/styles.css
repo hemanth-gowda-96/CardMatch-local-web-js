@@ -10,12 +10,14 @@ body {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   min-height: 100vh;
   color: #333;
+  overflow-x: hidden;
 }
 
 #app {
   max-width: 1200px;
   margin: 0 auto;
-  padding: 20px;
+  padding: 15px;
+  min-height: 100vh;
 }
 
 /* Screen Management */
@@ -206,15 +208,18 @@ input[type="text"]:focus {
 
 /* Game Screen Layout */
 #game-screen {
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  gap: 20px;
-  height: 90vh;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  height: 95vh;
+  overflow: hidden;
+  padding: 10px 0;
 }
 
 #notification-cards {
-  max-height: 120px;
+  max-height: 100px;
   overflow-y: auto;
+  min-height: 60px;
 }
 
 .notification-card {
@@ -261,35 +266,38 @@ input[type="text"]:focus {
 #game-info {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
-  gap: 20px;
-  align-items: center;
+  gap: 15px;
+  align-items: start;
   background: #f8f9fa;
-  padding: 20px;
+  padding: 15px;
   border-radius: 10px;
 }
 
 .game-status {
-  text-align: left;
+  text-align: center;
 }
 
 #game-notifications {
-  margin-top: 15px;
   background: #e7f3ff;
   border-radius: 8px;
   padding: 10px;
   border-left: 4px solid #007bff;
+  max-height: 120px;
+  overflow-y: auto;
+  min-height: 80px;
 }
 
 #game-notifications h4 {
   font-size: 14px;
   margin-bottom: 8px;
   color: #007bff;
+  text-align: center;
 }
 .center-area {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 40px;
+  gap: 30px;
 }
 
 #deck-area {
@@ -301,8 +309,30 @@ input[type="text"]:focus {
 
 .deck-actions {
   display: flex;
-  flex-direction: column;
-  gap: 5px;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Hand Actions */
+#hand-actions {
+  text-align: center;
+  padding: 10px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  margin: 5px 0;
+  flex-shrink: 0;
+}
+
+#hand-actions .deck-actions {
+  margin: 0;
+}
+
+/* Game Actions */
+#game-actions {
+  text-align: center;
+  padding: 10px;
+  flex-shrink: 0;
 }
 
 #direction-indicator {
@@ -388,6 +418,8 @@ input[type="text"]:focus {
   background: #f8f9fa;
   border-radius: 10px;
   padding: 20px;
+  margin-bottom: 20px;
+  flex-shrink: 0;
 }
 
 #hand-cards {
@@ -395,28 +427,31 @@ input[type="text"]:focus {
   flex-wrap: wrap;
   justify-content: center;
   gap: 5px;
-  margin-bottom: 20px;
-  min-height: 140px;
+  margin-bottom: 15px;
+  min-height: 130px;
+  padding: 10px 0;
 }
 
-/* Player Circle */
-#player-circle {
+/* Players Row */
+#players-row {
   background: #f8f9fa;
   border-radius: 10px;
-  padding: 20px;
+  padding: 15px;
   text-align: center;
+  flex-shrink: 0;
 }
 
-#player-circle h4 {
+#players-row h4 {
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 10px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
+  font-size: 16px;
 }
 
 #turn-direction {
-  font-size: 1.5em;
+  font-size: 1.3em;
   color: #007bff;
   transition: transform 0.3s ease;
 }
@@ -425,39 +460,35 @@ input[type="text"]:focus {
   transform: scaleX(-1);
 }
 
-#players-circle-container {
-  position: relative;
-  width: 300px;
-  height: 300px;
-  margin: 0 auto;
-  border: 2px dashed #ddd;
-  border-radius: 50%;
-}
-
-#players-positions {
-  position: relative;
-  width: 100%;
-  height: 100%;
+#players-list-game {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+  margin-bottom: 15px;
+  min-height: 80px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
 }
 
 .player-position {
-  position: absolute;
   width: 80px;
-  height: 80px;
-  border-radius: 50%;
+  height: 60px;
+  border-radius: 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   background: white;
   border: 2px solid #ddd;
-  font-size: 12px;
+  font-size: 11px;
   font-weight: bold;
   text-align: center;
-  padding: 5px;
+  padding: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   transition: all 0.3s ease;
-  transform: translate(-50%, -50%);
 }
 
 .player-position.current-player {
@@ -490,16 +521,6 @@ input[type="text"]:focus {
 .player-cards-circle {
   font-size: 9px;
   color: #666;
-}
-
-/* Turn indicator arrows */
-.turn-arrow {
-  position: absolute;
-  font-size: 20px;
-  color: #28a745;
-  font-weight: bold;
-  z-index: 5;
-  animation: bounce 1s infinite;
 }
 
 @keyframes pulse-green {
@@ -787,11 +808,12 @@ input[type="text"]:focus {
 
   #game-info {
     grid-template-columns: 1fr;
-    text-align: center;
+    gap: 10px;
+    padding: 10px;
   }
 
   .center-area {
-    gap: 20px;
+    gap: 15px;
   }
 
   #deck-area {
@@ -799,12 +821,37 @@ input[type="text"]:focus {
   }
 
   .deck-actions {
-    gap: 3px;
+    gap: 8px;
+    flex-direction: column;
   }
 
   .deck-actions .btn {
     padding: 8px 12px;
     font-size: 12px;
+  }
+
+  #hand-actions {
+    padding: 8px;
+  }
+
+  #players-row {
+    padding: 12px;
+  }
+
+  #players-list-game {
+    gap: 10px;
+  }
+
+  #your-hand {
+    padding: 15px;
+    margin-bottom: 15px;
+  }
+
+  .player-position {
+    width: 70px;
+    height: 50px;
+    font-size: 10px;
+    padding: 5px;
   }
 
   .card {
@@ -838,15 +885,15 @@ input[type="text"]:focus {
     font-size: 14px;
   }
 
-  #players-circle-container {
-    width: 250px;
-    height: 250px;
+  #players-list-game {
+    gap: 8px;
   }
 
   .player-position {
     width: 60px;
-    height: 60px;
-    font-size: 10px;
+    height: 45px;
+    font-size: 9px;
+    padding: 4px;
   }
 
   .player-name-circle {
@@ -855,5 +902,25 @@ input[type="text"]:focus {
 
   .player-cards-circle {
     font-size: 7px;
+  }
+
+  #game-screen {
+    height: 98vh;
+    gap: 8px;
+    padding: 5px 0;
+  }
+
+  #hand-cards {
+    min-height: 110px;
+    padding: 5px 0;
+  }
+
+  #your-hand {
+    padding: 12px;
+    margin-bottom: 10px;
+  }
+
+  #players-row {
+    padding: 10px;
   }
 }
