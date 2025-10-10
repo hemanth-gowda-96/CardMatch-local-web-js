@@ -536,6 +536,27 @@ class UnoClient {
     const topCard = this.gameState.topCard;
     const declaredColor = this.gameState.declaredColor;
 
+    // If there are pending draws, check special rules
+    if (this.gameState.drawCount > 0) {
+      // Can play draw cards to stack
+      if (card.value === "draw2" || card.value === "wild_draw4") {
+        return true;
+      }
+
+      // Special rule: If last card was +4 and color was declared,
+      // can play Skip or Reverse of that color
+      if (
+        this.gameState.lastPlayedWasDraw4 &&
+        declaredColor &&
+        (card.value === "skip" || card.value === "reverse") &&
+        card.color === declaredColor
+      ) {
+        return true;
+      }
+
+      return false; // Must draw otherwise
+    }
+
     // Wild cards can always be played
     if (card.type === "wild") {
       return true;
