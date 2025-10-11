@@ -1,17 +1,19 @@
-# 🃏 UNO Local Network Game
+# 🃏 CardMatch Local Network Game
 
-A full-featured multiplayer UNO card game that supports up to 10 players over a local network using WebSockets. Built with Node.js, Socket.IO, and vanilla JavaScript.
+Inspired by the classic UNO card game.
+
+A full-featured multiplayer CardMatch card game that supports up to 10 players over a local network using WebSockets. Built with Node.js, Socket.IO, and vanilla JavaScript.
 
 ## ✨ Features
 
 - 🎮 Real-time multiplayer gameplay for 2-10 players
 - 🌐 Local network support - no internet required
 - ⚡ WebSocket-based real-time communication
-- 🎯 Complete UNO rules implementation
+- 🎯 Complete CardMatch rules implementation
 - 📱 Responsive web interface for all devices
 - 🎨 Beautiful, intuitive card interface
 - 🏆 Score tracking across rounds
-- 🔥 UNO challenge system
+- 🔥 CardMatch challenge system
 - ⏭️ Special cards: Skip, Reverse, Draw 2, Wild, Wild Draw 4
 
 ## 🚀 Quick Start
@@ -26,7 +28,7 @@ A full-featured multiplayer UNO card game that supports up to 10 players over a 
 1. **Clone or download this project**
 
    ```bash
-   cd uno-local-js
+   cd cardmatch-local-js
    ```
 
 2. **Install dependencies**
@@ -54,7 +56,7 @@ A full-featured multiplayer UNO card game that supports up to 10 players over a 
 ### Example Server Output
 
 ```
-🃏 UNO Game Server running on:
+🃏 CardMatch Game Server running on:
    Local: http://localhost:3000
    Network: http://192.168.1.100:3000
 
@@ -79,14 +81,14 @@ A full-featured multiplayer UNO card game that supports up to 10 players over a 
   - **Draw 2**: Next player draws 2 cards and loses turn
   - **Wild**: Choose any color
   - **Wild Draw 4**: Choose color, next player draws 4 cards
-- Say "UNO" when you have one card left!
+- Say "CardMatch" when you have one card left!
 - First player to empty their hand wins the round
 
 ### Controls
 
 - **Click a card** to play it
 - **Click "Draw"** to draw from the deck
-- **Click "UNO!"** when you have 2 cards (before playing your second-to-last card)
+- **Click "CardMatch!"** when you have 2 cards (before playing your second-to-last card)
 - **Choose color** when playing Wild cards
 
 ## 🛠️ Development
@@ -108,7 +110,7 @@ npm test
 ### Project Structure
 
 ```
-uno-local-js/
+cardmatch-local-js/
 ├── client/           # Frontend files
 │   ├── index.html    # Main HTML interface
 │   ├── styles.css    # Game styling
@@ -142,7 +144,7 @@ uno-local-js/
 
 ### Game Engine
 
-- **Complete UNO rule implementation**
+- **Complete CardMatch rule implementation**
 - **State management** for multiple concurrent games
 - **Player hand management** with card validation
 - **Turn-based logic** with special card effects
@@ -172,13 +174,13 @@ uno-local-js/
 
 ### Implemented Rules
 
-- ✅ Standard UNO card deck (108 cards)
+- ✅ Standard CardMatch card deck (108 cards)
 - ✅ Number cards (0-9 in 4 colors)
 - ✅ Skip, Reverse, Draw 2 cards
 - ✅ Wild and Wild Draw 4 cards
 - ✅ Color declaration for Wild cards
-- ✅ UNO declaration system
-- ✅ Draw card penalty for not saying UNO
+- ✅ CardMatch declaration system
+- ✅ Draw card penalty for not saying CardMatch
 - ✅ Score calculation
 - ✅ Multiple rounds
 
@@ -207,7 +209,7 @@ MIT License - feel free to use this project however you'd like!
 
 ## 🎉 Enjoy Playing!
 
-Have fun playing UNO with your friends and family! This game is perfect for:
+Have fun playing CardMatch with your friends and family! This game is perfect for:
 
 - Family game nights
 - Office parties

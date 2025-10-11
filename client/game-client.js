@@ -1,5 +1,5 @@
-// UNO Game Client JavaScript
-class UnoClient {
+// CardMatch Game Client JavaScript
+class CardMatchClient {
   constructor() {
     this.socket = null;
     this.gameState = null;
@@ -68,8 +68,8 @@ class UnoClient {
         this.showNotificationCard(data.message, "error");
       }
 
-      if (data.unoViolation) {
-        message = `${data.playerName} didn't say UNO! 5 card penalty!`;
+      if (data.cardMatchViolation) {
+        message = `${data.playerName} didn't say CardMatch! 5 card penalty!`;
         this.showNotificationCard(data.message, "warning");
       }
 
@@ -81,7 +81,7 @@ class UnoClient {
 
       this.showMessage(
         message,
-        data.invalidWin || data.unoViolation ? "warning" : "info"
+        data.invalidWin || data.cardMatchViolation ? "warning" : "info"
       );
 
       if (data.gameEnded) {
@@ -113,18 +113,18 @@ class UnoClient {
       this.showMessage(`${data.playerName} passed their turn`, "info");
     });
 
-    this.socket.on("unoSaid", (data) => {
-      this.showMessage(`${data.playerName} said UNO!`, "warning");
+    this.socket.on("cardMatchSaid", (data) => {
+      this.showMessage(`${data.playerName} said CardMatch!`, "warning");
     });
 
-    this.socket.on("unoChallenged", (data) => {
+    this.socket.on("cardMatchChallenged", (data) => {
       if (data.valid) {
         this.showMessage(
-          `UNO challenge successful! Player drew ${data.penalty} cards`,
+          `CardMatch challenge successful! Player drew ${data.penalty} cards`,
           "warning"
         );
       } else {
-        this.showMessage("Invalid UNO challenge", "info");
+        this.showMessage("Invalid CardMatch challenge", "info");
       }
     });
   }
@@ -163,8 +163,8 @@ class UnoClient {
       this.passTurn();
     });
 
-    document.getElementById("uno-btn").addEventListener("click", () => {
-      this.sayUno();
+    document.getElementById("cardmatch-btn").addEventListener("click", () => {
+      this.sayCardMatch();
     });
 
     document.getElementById("leave-game-btn").addEventListener("click", () => {
@@ -306,9 +306,9 @@ class UnoClient {
     document.getElementById("pass-turn-btn").classList.add("hidden");
   }
 
-  sayUno() {
-    this.socket.emit("sayUno");
-    document.getElementById("uno-btn").classList.add("hidden");
+  sayCardMatch() {
+    this.socket.emit("sayCardMatch");
+    document.getElementById("cardmatch-btn").classList.add("hidden");
   }
 
   playCard(cardIndex) {
@@ -402,11 +402,11 @@ class UnoClient {
     // Update player circle
     this.updatePlayerCircle(state);
 
-    // Update UNO button visibility
+    // Update CardMatch button visibility
     if (state.yourHand.length === 2) {
-      document.getElementById("uno-btn").classList.remove("hidden");
+      document.getElementById("cardmatch-btn").classList.remove("hidden");
     } else {
-      document.getElementById("uno-btn").classList.add("hidden");
+      document.getElementById("cardmatch-btn").classList.add("hidden");
     }
 
     // Update turn-based UI
@@ -756,5 +756,5 @@ document.head.appendChild(style);
 
 // Initialize the game client when the page loads
 document.addEventListener("DOMContentLoaded", () => {
-  new UnoClient();
+  new CardMatchClient();
 });

@@ -1,7 +1,7 @@
 {
-  "name": "uno-local-js",
+  "name": "cardmatch-local-js",
   "version": "1.0.0",
-  "description": "A multiplayer UNO game for local network play supporting up to 10 players",
+  "description": "A multiplayer CardMatch game for local network play supporting up to 10 players",
   "main": "server/server.js",
   "scripts": {
     "start": "node server/server.js",
@@ -9,7 +9,7 @@
     "test": "node test/game-test.js"
   },
   "keywords": [
-    "uno",
+    "cardmatch",
     "multiplayer",
     "websocket",
     "local-network",
