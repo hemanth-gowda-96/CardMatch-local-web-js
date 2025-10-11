@@ -184,9 +184,9 @@ function runTests() {
     game.currentPlayerIndex = 1; // Player2's turn
     game.playCard("player2", 0); // Play red skip
 
-    // After playing skip, drawCount should be cleared and skip should be active
-    if (game.drawCount !== 0) {
-      throw new Error("Expected drawCount to be 0 after skip counter");
+    // After playing skip, drawCount should remain (passed to next player) and skip should be active
+    if (game.drawCount !== 4) {
+      throw new Error("Expected drawCount to remain 4 after skip (passed to next player)");
     }
     if (!game.skipNext) {
       throw new Error("Expected skipNext to be true after skip");
