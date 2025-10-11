@@ -148,6 +148,60 @@ function runTests() {
     }
   });
 
+  // Test +4 counter rule with Skip/Reverse
+  test("Should allow Skip/Reverse to counter +4 of same color", () => {
+    const game = new UnoGame("TEST123");
+    game.addPlayer("player1", "Alice", "socket1");
+    game.addPlayer("player2", "Bob", "socket2");
+    game.startGame();
+
+    // Manually set up game state for testing
+    const player1 = game.players.get("player1");
+    const player2 = game.players.get("player2");
+
+    // Give player1 a wild_draw4 card
+    const wildDraw4 = new Card(null, "wild_draw4", "wild");
+    player1.hand = [wildDraw4];
+
+    // Give player2 a red skip card
+    const redSkip = new Card("red", "skip", "special");
+    player2.hand = [redSkip];
+
+    // Set up initial discard pile with any card
+    const initialCard = new Card("blue", "5", "number");
+    game.deck.discardPile = [initialCard];
+
+    // Player1 plays wild_draw4 and declares red
+    game.currentPlayerIndex = 0; // Player1's turn
+    game.playCard("player1", 0, "red");
+
+    // Verify +4 is set up
+    if (game.drawCount !== 4) {
+      throw new Error("Expected drawCount to be 4 after wild_draw4");
+    }
+    if (!game.lastPlayedWasDraw4) {
+      throw new Error("Expected lastPlayedWasDraw4 to be true");
+    }
+    if (game.declaredColor !== "red") {
+      throw new Error("Expected declared color to be red");
+    }
+
+    // Player2 should be able to play red skip to counter
+    game.currentPlayerIndex = 1; // Player2's turn
+    game.playCard("player2", 0); // Play red skip
+
+    // After playing skip, drawCount should be cleared and skip should be active
+    if (game.drawCount !== 0) {
+      throw new Error("Expected drawCount to be 0 after skip counter");
+    }
+    if (!game.skipNext) {
+      throw new Error("Expected skipNext to be true after skip");
+    }
+    if (game.lastPlayedWasDraw4) {
+      throw new Error("Expected lastPlayedWasDraw4 to be false after counter");
+    }
+  });
+
   console.log(`\n🎯 Test Results: ${passed} passed, ${failed} failed`);
 
   if (failed === 0) {

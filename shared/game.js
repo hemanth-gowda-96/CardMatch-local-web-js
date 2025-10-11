@@ -71,7 +71,10 @@ class UnoGame {
     this.declaredColor = null;
     this.skipNext = false;
     this.drawCount = 0; // For stacking draw cards
+    this.lastPlayedWasDraw4 = false; // Track if last card was wild_draw4
     this.winner = null;
+    this.finishingOrder = []; // Track order of players finishing the game
+    this.activePlayers = new Set(); // Track players still in the game
     this.scores = new Map(); // Track cumulative scores across rounds
   }
 
@@ -133,6 +136,11 @@ class UnoGame {
 
     this.gameState = GAME_STATES.STARTING;
 
+    // Reset game state
+    this.finishingOrder = [];
+    this.activePlayers = new Set(this.playerOrder);
+    this.lastPlayedWasDraw4 = false;
+
     // Reset all players
     this.players.forEach((player) => player.reset());
 
@@ -165,6 +173,7 @@ class UnoGame {
     this.direction = DIRECTIONS.CLOCKWISE;
     this.skipNext = false;
     this.drawCount = 0;
+    this.lastPlayedWasDraw4 = false;
     this.winner = null;
 
     this.gameState = GAME_STATES.PLAYING;
@@ -219,12 +228,52 @@ class UnoGame {
       throw new Error("Invalid card play");
     }
 
-    // Handle draw stacking - if there are pending draws, player must draw or play a draw card
+    // Handle draw stacking - if there are pending draws, player must draw or play appropriate cards
     if (this.drawCount > 0) {
       const card = player.hand[cardIndex];
-      if (!(card.value === "draw2" || card.value === "wild_draw4")) {
-        throw new Error("Must draw cards or play a draw card");
+      let canPlayCard = false;
+
+      if (this.lastPlayedWasDraw4) {
+        // Special rule: After +4, only Skip/Reverse of declared color or another +4 allowed
+        if (card.value === "wild_draw4") {
+          canPlayCard = true;
+        } else if (
+          this.declaredColor &&
+          (card.value === "skip" || card.value === "reverse") &&
+          card.color === this.declaredColor
+        ) {
+          canPlayCard = true;
+        }
+        // +2 cards are NOT allowed on top of +4
+      } else {
+        // Normal draw stacking: can play draw2 or wild_draw4
+        if (card.value === "draw2" || card.value === "wild_draw4") {
+          canPlayCard = true;
+        }
       }
+
+      if (!canPlayCard) {
+        if (this.lastPlayedWasDraw4) {
+          throw new Error(
+            `After +4, you can only play Skip/Reverse of ${this.declaredColor} color or another +4`
+          );
+        } else {
+          throw new Error("Must draw cards or play a draw card");
+        }
+      }
+    }
+
+    // Check for UNO penalty BEFORE playing the card
+    const handSizeBeforePlay = player.getHandSize();
+    if (handSizeBeforePlay === 2 && !player.saidUno) {
+      // Player will have 1 card after playing but didn't say UNO - penalty!
+      const penaltyCards = this.deck.drawCards(5);
+      player.addCards(penaltyCards);
+      return {
+        gameEnded: false,
+        unoViolation: true,
+        message: `${player.name} didn't say UNO! Draw 5 penalty cards.`,
+      };
     }
 
     const playedCard = player.removeCard(cardIndex);
@@ -246,13 +295,9 @@ class UnoGame {
     // Reset draw flag
     player.hasDrawnCard = false;
 
-    // Check for UNO (1 card left)
-    if (player.getHandSize() === 1) {
-      if (!player.saidUno) {
-        // Penalty for not saying UNO - draw 2 cards
-        const penaltyCards = this.deck.drawCards(2);
-        player.addCards(penaltyCards);
-      }
+    // Reset UNO flag if player has more than 1 card after playing
+    if (player.getHandSize() > 1) {
+      player.saidUno = false;
     }
 
     // Check for win - cannot win with action cards
@@ -271,10 +316,59 @@ class UnoGame {
         };
       }
 
-      this.winner = player;
-      this.gameState = GAME_STATES.FINISHED;
-      this.calculateScores();
-      return { gameEnded: true, winner: player };
+      // Player finished - add to finishing order and remove from active players
+      this.finishingOrder.push({
+        playerId: player.id,
+        playerName: player.name,
+        position: this.finishingOrder.length + 1,
+      });
+      this.activePlayers.delete(player.id);
+
+      // Remove finished player from playerOrder
+      const playerIndex = this.playerOrder.indexOf(player.id);
+      this.playerOrder.splice(playerIndex, 1);
+
+      // Adjust current player index if needed
+      if (
+        this.currentPlayerIndex >= playerIndex &&
+        this.currentPlayerIndex > 0
+      ) {
+        this.currentPlayerIndex--;
+      }
+      if (this.currentPlayerIndex >= this.playerOrder.length) {
+        this.currentPlayerIndex = 0;
+      }
+
+      // Check if game is over (only one player left)
+      if (this.activePlayers.size <= 1) {
+        // Add the last player as the loser
+        if (this.activePlayers.size === 1) {
+          const lastPlayerId = Array.from(this.activePlayers)[0];
+          const lastPlayer = this.players.get(lastPlayerId);
+          this.finishingOrder.push({
+            playerId: lastPlayer.id,
+            playerName: lastPlayer.name,
+            position: this.finishingOrder.length + 1,
+            isLoser: true,
+          });
+        }
+
+        this.winner = this.players.get(this.finishingOrder[0].playerId);
+        this.gameState = GAME_STATES.FINISHED;
+        return {
+          gameEnded: true,
+          winner: this.winner,
+          finishingOrder: this.finishingOrder,
+          playerFinished: player,
+        };
+      }
+
+      return {
+        gameEnded: false,
+        playerFinished: player,
+        finishingOrder: this.finishingOrder,
+        remainingPlayers: this.activePlayers.size,
+      };
     }
 
     // Handle special card effects
@@ -293,14 +387,38 @@ class UnoGame {
 
     switch (card.value) {
       case "skip":
-        this.skipNext = true;
+        // Special rule: If this skip counters a +4, handle differently
+        if (
+          this.lastPlayedWasDraw4 &&
+          this.drawCount > 0 &&
+          card.color === this.declaredColor
+        ) {
+          // Skip counters the +4 - next player doesn't draw
+          this.drawCount = 0;
+          this.lastPlayedWasDraw4 = false;
+          this.skipNext = true; // Skip the next player
+        } else {
+          this.skipNext = true;
+        }
         break;
 
       case "reverse":
-        this.direction *= -1;
-        // In 2-player game, reverse acts like skip
-        if (this.players.size === 2) {
-          this.skipNext = true;
+        // Special rule: If this reverse counters a +4, handle differently
+        if (
+          this.lastPlayedWasDraw4 &&
+          this.drawCount > 0 &&
+          card.color === this.declaredColor
+        ) {
+          // Reverse counters the +4 - direction changes and original player draws
+          this.direction *= -1;
+          this.lastPlayedWasDraw4 = false;
+          // Don't clear drawCount - let the original player draw the cards
+        } else {
+          this.direction *= -1;
+          // In 2-player game, reverse acts like skip
+          if (this.players.size === 2) {
+            this.skipNext = true;
+          }
         }
         break;
 
@@ -310,6 +428,14 @@ class UnoGame {
 
       case "wild_draw4":
         this.drawCount += 4;
+        this.lastPlayedWasDraw4 = true;
+        break;
+
+      default:
+        // Reset flag for non-draw4 cards (unless it was handled above)
+        if (card.value !== "skip" && card.value !== "reverse") {
+          this.lastPlayedWasDraw4 = false;
+        }
         break;
     }
 
@@ -339,6 +465,12 @@ class UnoGame {
       const cards = this.deck.drawCards(this.drawCount);
       player.addCards(cards);
       this.drawCount = 0;
+      this.lastPlayedWasDraw4 = false; // Reset flag after drawing
+
+      // Reset UNO flag since player now has more cards
+      if (player.getHandSize() > 1) {
+        player.saidUno = false;
+      }
 
       // Check if any of the drawn cards are playable
       let hasPlayableCard = false;
@@ -359,6 +491,11 @@ class UnoGame {
     if (card) {
       player.addCards(card);
       player.hasDrawnCard = true;
+
+      // Reset UNO flag since player now has more cards
+      if (player.getHandSize() > 1) {
+        player.saidUno = false;
+      }
 
       // Check if drawn card is playable
       const canPlay = card.canPlayOn(
@@ -464,6 +601,9 @@ class UnoGame {
         handSize: p.getHandSize(),
         isReady: p.isReady,
         score: this.scores.get(p.id) || 0,
+        isFinished:
+          !this.activePlayers.has(p.id) &&
+          this.gameState === GAME_STATES.PLAYING,
       })),
       playerOrder: this.playerOrder,
       currentPlayer: currentPlayer?.id || null,
@@ -473,7 +613,10 @@ class UnoGame {
       declaredColor: this.declaredColor,
       direction: this.direction,
       drawCount: this.drawCount,
+      lastPlayedWasDraw4: this.lastPlayedWasDraw4,
       winner: this.winner?.id || null,
+      finishingOrder: this.finishingOrder,
+      activePlayers: Array.from(this.activePlayers),
     };
   }
 

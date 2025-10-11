@@ -68,7 +68,21 @@ class UnoClient {
         this.showNotificationCard(data.message, "error");
       }
 
-      this.showMessage(message, data.invalidWin ? "warning" : "info");
+      if (data.unoViolation) {
+        message = `${data.playerName} didn't say UNO! 5 card penalty!`;
+        this.showNotificationCard(data.message, "warning");
+      }
+
+      // Handle player finishing
+      if (data.playerFinished && !data.gameEnded) {
+        const finishMessage = `🎉 ${data.playerFinished.name} finished in position ${data.finishingOrder.length}! ${data.remainingPlayers} players remaining.`;
+        this.showNotificationCard(finishMessage, "success");
+      }
+
+      this.showMessage(
+        message,
+        data.invalidWin || data.unoViolation ? "warning" : "info"
+      );
 
       if (data.gameEnded) {
         this.handleGameEnd(data.winner);
@@ -454,8 +468,13 @@ class UnoClient {
   }
 
   updatePlayerCircle(state) {
-    const playersContainer = document.getElementById("players-positions");
+    const playersContainer = document.getElementById("players-list-game");
     const turnDirection = document.getElementById("turn-direction");
+
+    console.log("Updating player circle with state:", state);
+    console.log("Players container:", playersContainer);
+    console.log("Player order:", state.playerOrder);
+    console.log("Players:", state.players);
 
     // Update direction indicator
     turnDirection.textContent = state.direction === 1 ? "↻" : "↺";
@@ -463,31 +482,24 @@ class UnoClient {
 
     playersContainer.innerHTML = "";
 
-    if (!state.playerOrder || state.playerOrder.length === 0) return;
+    if (!state.playerOrder || state.playerOrder.length === 0) {
+      console.log("No player order found, returning");
+      return;
+    }
 
     const totalPlayers = state.playerOrder.length;
-    const radius = 120; // Distance from center
-    const centerX = 150; // Half of container width
-    const centerY = 150; // Half of container height
 
-    // Find current player's position in the order
-    const myIndex = state.playerOrder.findIndex((id) => id === this.playerId);
-
-    // Arrange players in circle, starting with current player at top
+    // Arrange players in a row
     state.playerOrder.forEach((playerId, orderIndex) => {
       const player = state.players.find((p) => p.id === playerId);
-      if (!player) return;
+      if (!player) {
+        console.log("Player not found for ID:", playerId);
+        return;
+      }
 
-      // Calculate angle for this position (start from top, go clockwise)
-      const angle =
-        orderIndex * (360 / totalPlayers) * (Math.PI / 180) - Math.PI / 2;
-      const x = centerX + radius * Math.cos(angle);
-      const y = centerY + radius * Math.sin(angle);
-
+      console.log("Creating player element for:", player.name);
       const playerElement = document.createElement("div");
       playerElement.className = "player-position";
-      playerElement.style.left = `${x}px`;
-      playerElement.style.top = `${y}px`;
 
       // Add special classes
       if (player.id === this.playerId) {
@@ -499,10 +511,13 @@ class UnoClient {
       }
 
       // Mark next player
+      const currentPlayerIndex = state.playerOrder.findIndex(
+        (id) => id === state.currentPlayer
+      );
       const nextPlayerIndex =
         state.direction === 1
-          ? (state.currentPlayerIndex + 1) % totalPlayers
-          : (state.currentPlayerIndex - 1 + totalPlayers) % totalPlayers;
+          ? (currentPlayerIndex + 1) % totalPlayers
+          : (currentPlayerIndex - 1 + totalPlayers) % totalPlayers;
 
       if (orderIndex === nextPlayerIndex && state.currentPlayer !== player.id) {
         playerElement.classList.add("next-player");
@@ -519,32 +534,14 @@ class UnoClient {
         <div class="player-cards-circle">${player.handSize} cards</div>
       `;
 
+      console.log("Appending player element:", playerElement);
       playersContainer.appendChild(playerElement);
-
-      // Add turn arrow pointing to current player
-      if (player.id === state.currentPlayer) {
-        this.addTurnArrow(x, y, centerX, centerY);
-      }
     });
-  }
 
-  addTurnArrow(playerX, playerY, centerX, centerY) {
-    const playersContainer = document.getElementById("players-positions");
-
-    // Calculate position for arrow (closer to center)
-    const arrowDistance = 40; // Distance from player toward center
-    const angle = Math.atan2(playerY - centerY, playerX - centerX);
-    const arrowX = playerX - arrowDistance * Math.cos(angle);
-    const arrowY = playerY - arrowDistance * Math.sin(angle);
-
-    const arrow = document.createElement("div");
-    arrow.className = "turn-arrow";
-    arrow.style.left = `${arrowX}px`;
-    arrow.style.top = `${arrowY}px`;
-    arrow.style.transform = "translate(-50%, -50%)";
-    arrow.textContent = "👈";
-
-    playersContainer.appendChild(arrow);
+    console.log(
+      "Final container children count:",
+      playersContainer.children.length
+    );
   }
 
   canPlayCard(card) {
@@ -552,6 +549,32 @@ class UnoClient {
 
     const topCard = this.gameState.topCard;
     const declaredColor = this.gameState.declaredColor;
+
+    // If there are pending draws, check special rules
+    if (this.gameState.drawCount > 0) {
+      if (this.gameState.lastPlayedWasDraw4) {
+        // Special rule: After +4, only Skip/Reverse of declared color or another +4 allowed
+        if (card.value === "wild_draw4") {
+          return true;
+        }
+        if (
+          declaredColor &&
+          (card.value === "skip" || card.value === "reverse") &&
+          card.color === declaredColor
+        ) {
+          return true;
+        }
+        // +2 cards are NOT allowed on top of +4
+        return false;
+      } else {
+        // Normal draw stacking: can play draw2 or wild_draw4
+        if (card.value === "draw2" || card.value === "wild_draw4") {
+          return true;
+        }
+      }
+
+      return false; // Must draw otherwise
+    }
 
     // Wild cards can always be played
     if (card.type === "wild") {
@@ -589,21 +612,55 @@ class UnoClient {
       "winner-announcement"
     ).textContent = `🎉 ${winner.name} wins the game! 🎉`;
 
-    // Show final scores
-    const scoresElement = document.getElementById("final-scores");
-    scoresElement.innerHTML = "<h4>Final Scores:</h4>";
+    // Show finishing order
+    if (
+      this.gameState.finishingOrder &&
+      this.gameState.finishingOrder.length > 0
+    ) {
+      const finishingElement = document.getElementById("finishing-order");
+      finishingElement.innerHTML = "<h4>Finishing Order:</h4>";
 
-    this.gameState.players
-      .sort((a, b) => b.score - a.score)
-      .forEach((player) => {
-        const scoreItem = document.createElement("div");
-        scoreItem.className = "score-item";
-        scoreItem.innerHTML = `
-                    <span>${player.name}</span>
-                    <span>${player.score} points</span>
-                `;
-        scoresElement.appendChild(scoreItem);
+      this.gameState.finishingOrder.forEach((finisher, index) => {
+        const finishItem = document.createElement("div");
+        finishItem.className = "finish-item";
+
+        let positionText = "";
+        let emoji = "";
+        if (index === 0) {
+          positionText = "1st - WINNER";
+          emoji = "🥇";
+        } else if (index === 1) {
+          positionText = "2nd";
+          emoji = "🥈";
+        } else if (index === 2) {
+          positionText = "3rd";
+          emoji = "🥉";
+        } else if (finisher.isLoser) {
+          positionText = `${finisher.position}th - LOSER`;
+          emoji = "💀";
+        } else {
+          positionText = `${finisher.position}th`;
+          emoji = "🏁";
+        }
+
+        finishItem.innerHTML = `
+          <span>${emoji} ${positionText}</span>
+          <span>${finisher.playerName}</span>
+        `;
+
+        if (finisher.isLoser) {
+          finishItem.classList.add("loser");
+        } else if (index === 0) {
+          finishItem.classList.add("winner");
+        }
+
+        finishingElement.appendChild(finishItem);
       });
+    }
+
+    // Hide final scores section since we only show finishing order
+    const scoresElement = document.getElementById("final-scores");
+    scoresElement.style.display = "none";
 
     setTimeout(() => {
       this.showScreen("game-over-screen");
