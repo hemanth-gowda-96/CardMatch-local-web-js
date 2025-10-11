@@ -416,8 +416,8 @@ class CardMatchGame {
         ) {
           // Skip passes the +4 to the next player - drawCount remains, but lastPlayedWasDraw4 is reset
           this.lastPlayedWasDraw4 = false;
-          // Set skipNext to true so the +4 goes to the player after the next one
-          this.skipNext = true;
+          // Don't set skipNext - just let turn flow naturally to pass +4 to next player
+          // The +4 will be handled by the next player in normal turn order
         } else {
           this.skipNext = true;
         }
