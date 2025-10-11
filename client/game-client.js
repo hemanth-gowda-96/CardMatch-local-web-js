@@ -471,11 +471,6 @@ class CardMatchClient {
     const playersContainer = document.getElementById("players-list-game");
     const turnDirection = document.getElementById("turn-direction");
 
-    console.log("Updating player circle with state:", state);
-    console.log("Players container:", playersContainer);
-    console.log("Player order:", state.playerOrder);
-    console.log("Players:", state.players);
-
     // Update direction indicator
     turnDirection.textContent = state.direction === 1 ? "↻" : "↺";
     turnDirection.className = state.direction === 1 ? "" : "counterclockwise";
@@ -483,7 +478,6 @@ class CardMatchClient {
     playersContainer.innerHTML = "";
 
     if (!state.playerOrder || state.playerOrder.length === 0) {
-      console.log("No player order found, returning");
       return;
     }
 
@@ -493,11 +487,8 @@ class CardMatchClient {
     state.playerOrder.forEach((playerId, orderIndex) => {
       const player = state.players.find((p) => p.id === playerId);
       if (!player) {
-        console.log("Player not found for ID:", playerId);
         return;
       }
-
-      console.log("Creating player element for:", player.name);
       const playerElement = document.createElement("div");
       playerElement.className = "player-position";
 
@@ -534,14 +525,8 @@ class CardMatchClient {
         <div class="player-cards-circle">${player.handSize} cards</div>
       `;
 
-      console.log("Appending player element:", playerElement);
       playersContainer.appendChild(playerElement);
     });
-
-    console.log(
-      "Final container children count:",
-      playersContainer.children.length
-    );
   }
 
   canPlayCard(card) {

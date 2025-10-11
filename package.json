@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node server/server.js",
     "dev": "nodemon server/server.js",
-    "test": "node test/game-test.js"
+    "test": "node test/run-all-tests.js"
   },
   "keywords": [
     "cardmatch",
