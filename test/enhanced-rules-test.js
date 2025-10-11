@@ -21,272 +21,288 @@ function testEnhanced4CounterRules() {
         }
     }
 
-    // Test Skip passes +4 to next player
+    // Test Skip passes +4 to next player (simplified and more robust)
     test("Skip should pass +4 to next player", () => {
-        const game = new CardMatchGame("TEST123");
-        game.addPlayer("player1", "Alice", "socket1");
-        game.addPlayer("player2", "Bob", "socket2");
-        game.addPlayer("player3", "Carol", "socket3");
+        const game = new CardMatchGame("SKIP_TEST");
+        game.addPlayer("playerA", "Alice", "socketA");
+        game.addPlayer("playerB", "Bob", "socketB");
+        game.addPlayer("playerC", "Carol", "socketC");
         game.startGame();
 
-        // Set up players with specific cards
-        const player1 = game.players.get("player1");
-        const player2 = game.players.get("player2");
-        const player3 = game.players.get("player3");
+        // Set up a controlled scenario: direct state manipulation for reliability
+        const playerA = game.players.get("playerA");
+        const playerB = game.players.get("playerB");
+        const playerC = game.players.get("playerC");
 
-        // Set up for user's scenario: Player2 has wild_draw4, Player3 has red skip
-        // Give player1 some normal cards
-        player1.hand = [new Card("green", "1", "number"), new Card("blue", "3", "number")];
-        game.sayCardMatch("player1"); // This works since player has 2 cards
+        // Give all players safe hands (3+ cards to avoid CardMatch penalties)
+        playerA.hand = [new Card("green", "1", "number"), new Card("blue", "3", "number"), new Card("yellow", "5", "number")];
+        playerB.hand = [new Card(null, "wild_draw4", "wild"), new Card("red", "2", "number"), new Card("green", "4", "number")];
+        playerC.hand = [new Card("red", "skip", "special"), new Card("blue", "6", "number"), new Card("yellow", "7", "number")];
 
-        // Give player2 a wild_draw4 card and extra card for proper CardMatch setup
-        const wildDraw4 = new Card(null, "wild_draw4", "wild");
-        const extraCard2 = new Card("yellow", "2", "number");
-        player2.hand = [wildDraw4, extraCard2];
-        game.sayCardMatch("player2"); // This works since player has 2 cards
-
-        // Give player3 a red skip card and extra card for proper CardMatch setup
-        const redSkip = new Card("red", "skip", "special");
-        const extraCard3 = new Card("green", "5", "number");
-        player3.hand = [redSkip, extraCard3];
-        game.sayCardMatch("player3"); // This works since player has 2 cards
-
-        // Set up initial discard pile
-        const initialCard = new Card("blue", "5", "number");
-        game.deck.discardPile = [initialCard];
-
-        // Reset game state to ensure clean test
+        // Set up controlled game state
+        game.deck.discardPile = [new Card("blue", "8", "number")];
         game.drawCount = 0;
         game.lastPlayedWasDraw4 = false;
         game.skipNext = false;
+        game.currentPlayerIndex = 1; // PlayerB's turn
 
-        // Simulate the user's scenario: Player2 plays wild_draw4, then Player3 counters with skip
-        // Set currentPlayerIndex to Player2 (index 1)
-        game.currentPlayerIndex = 1;
-        game.playCard("player2", 0, "red"); // Player2 plays wild_draw4
+        // PlayerB plays +4, chooses red
+        game.playCard("playerB", 0, "red");
 
-        // Verify +4 is set up
+        // Verify +4 setup
         if (game.drawCount !== 4) {
-            throw new Error("Expected drawCount to be 4 after wild_draw4");
+            throw new Error("Expected drawCount to be 4 after +4");
+        }
+        if (!game.lastPlayedWasDraw4) {
+            throw new Error("Expected lastPlayedWasDraw4 to be true after +4");
         }
 
-        // Now it should be Player3's turn (index 2)
+        // Should now be PlayerC's turn
         if (game.currentPlayerIndex !== 2) {
-            throw new Error(`Expected turn to be player3's (index 2) after player2's +4, but it's index ${game.currentPlayerIndex}`);
+            throw new Error(`Expected PlayerC's turn (index 2), got ${game.currentPlayerIndex}`);
         }
 
-        // Player3 plays red skip to counter the +4
-        // Find the red skip card in player3's hand  
-        const skipCardIndex = player3.hand.findIndex(card => card.value === "skip" && card.color === "red");
-        if (skipCardIndex === -1) {
-            throw new Error("Red skip card not found in player3's hand");
-        }
-        game.playCard("player3", skipCardIndex); // Player3 plays skip to counter
+        // PlayerC plays red skip to counter
+        game.playCard("playerC", 0);
 
-        // After skip, drawCount should remain and be passed to next player
+        // Verify the skip counter worked correctly
         if (game.drawCount !== 4) {
-            throw new Error("Expected drawCount to remain 4 after skip");
+            throw new Error("Expected drawCount to remain 4 after skip counter");
         }
-        if (game.lastPlayedWasDraw4) {
-            throw new Error("Expected lastPlayedWasDraw4 to be false after skip");
-        }
-
-        // Verify turn flow: Player2 played +4 (index 1), Player3 played skip (index 2), 
-        // now it should be Player1's turn (index 0) to handle the +4, NOT back to Player2
-        const currentPlayer = game.getCurrentPlayer();
-        if (currentPlayer.id !== "player1") {
-            throw new Error(`Expected turn to be player1's after skip counter, but it's ${currentPlayer.id}'s turn (index: ${game.currentPlayerIndex})`);
+        if (!game.lastPlayedWasDraw4) {
+            throw new Error("Expected lastPlayedWasDraw4 to remain true (bug fix verification)");
         }
 
-        // Note: skipNext will be false here because countering +4 doesn't skip anyone
-        // The important thing is that drawCount remains and goes to the correct next player
+        // Should now be PlayerA's turn (skip passed +4 to next player)
+        if (game.currentPlayerIndex !== 0) {
+            throw new Error(`Expected PlayerA's turn (index 0) after skip, got ${game.currentPlayerIndex}`);
+        }
     });
 
-    // Test Reverse returns +4 to original player
+    // Test Reverse returns +4 to original player (simplified and more robust)
     test("Reverse should return +4 to original player", () => {
-        const game = new CardMatchGame("TEST456"); // Use different room ID
-        game.addPlayer("player1", "Alice", "socket1");
-        game.addPlayer("player2", "Bob", "socket2");
-        game.addPlayer("player3", "Carol", "socket3");
+        const game = new CardMatchGame("REVERSE_TEST");
+        game.addPlayer("playerX", "Alice", "socketX");
+        game.addPlayer("playerY", "Bob", "socketY");
         game.startGame();
 
-        // Set up players with specific cards
-        const player1 = game.players.get("player1");
-        const player2 = game.players.get("player2");
-        const player3 = game.players.get("player3");
+        // Set up a controlled 2-player scenario for simplicity
+        const playerX = game.players.get("playerX");
+        const playerY = game.players.get("playerY");
 
-        // Give player1 a wild_draw4 card and extra card for proper CardMatch setup
-        const wildDraw4 = new Card(null, "wild_draw4", "wild");
-        const extraCard1 = new Card("green", "1", "number");
-        player1.hand = [wildDraw4, extraCard1];
-        game.sayCardMatch("player1"); // This works since player has 2 cards
+        // Give both players safe hands (3+ cards)
+        playerX.hand = [new Card(null, "wild_draw4", "wild"), new Card("blue", "1", "number"), new Card("green", "2", "number")];
+        playerY.hand = [new Card("red", "reverse", "special"), new Card("yellow", "3", "number"), new Card("blue", "4", "number")];
 
-        // Give player2 a red reverse card and extra card for proper CardMatch setup
-        const redReverse = new Card("red", "reverse", "special");
-        const extraCard2 = new Card("yellow", "2", "number");
-        player2.hand = [redReverse, extraCard2];
-        game.sayCardMatch("player2"); // This works since player has 2 cards
-
-        // Give player3 some cards
-        player3.hand = [new Card("blue", "1", "number"), new Card("blue", "3", "number")];
-        game.sayCardMatch("player3"); // This works since player has 2 cards
-
-        // Set up initial discard pile
-        const initialCard = new Card("blue", "5", "number");
-        game.deck.discardPile = [initialCard];
-
-        // Reset game state to ensure clean test
+        // Set up controlled game state
+        game.deck.discardPile = [new Card("green", "5", "number")];
         game.drawCount = 0;
         game.lastPlayedWasDraw4 = false;
         game.skipNext = false;
+        game.currentPlayerIndex = 0; // PlayerX's turn
 
-        // Remember original direction and player order
         const originalDirection = game.direction;
-        const originalCurrentPlayer = game.currentPlayerIndex;
 
-        // Player1 plays wild_draw4 and declares red
-        game.currentPlayerIndex = 0;
-        game.playCard("player1", 0, "red");        // Verify +4 is set up
-        if (game.drawCount !== 4) {
-            throw new Error(`Expected drawCount to be 4 after wild_draw4, but got ${game.drawCount}. Game state: lastPlayedWasDraw4=${game.lastPlayedWasDraw4}, player1 hand size=${player1.hand.length}`);
+        // PlayerX plays +4, chooses red
+        game.playCard("playerX", 0, "red");
+
+        // Verify +4 setup
+        if (game.drawCount !== 4 || !game.lastPlayedWasDraw4) {
+            throw new Error("Expected +4 to be set up correctly");
         }
 
-        // Player2 plays red reverse to send +4 back
-        game.currentPlayerIndex = 1;
-        // Find the red reverse card in player2's hand
-        const reverseCardIndex = player2.hand.findIndex(card => card.value === "reverse" && card.color === "red");
-        if (reverseCardIndex === -1) {
-            throw new Error("Red reverse card not found in player2's hand");
+        // Should now be PlayerY's turn
+        if (game.currentPlayerIndex !== 1) {
+            throw new Error("Expected PlayerY's turn after +4");
         }
-        game.playCard("player2", reverseCardIndex);
 
-        // After reverse, drawCount should remain for original player
+        // PlayerY plays red reverse to send +4 back
+        game.playCard("playerY", 0);
+
+        // Verify reverse worked correctly
         if (game.drawCount !== 4) {
             throw new Error("Expected drawCount to remain 4 after reverse");
         }
         if (game.direction === originalDirection) {
             throw new Error("Expected direction to be reversed");
         }
-        if (game.lastPlayedWasDraw4) {
-            throw new Error("Expected lastPlayedWasDraw4 to be false after reverse");
+        if (!game.lastPlayedWasDraw4) {
+            throw new Error("Expected lastPlayedWasDraw4 to remain true (bug fix verification)");
+        }
+
+        // In 2-player game, after reverse the turn should go back to PlayerX
+        if (game.currentPlayerIndex !== 0) {
+            throw new Error("Expected turn to return to PlayerX after reverse");
         }
     });
 
-    // Test with 10 players to ensure turn flow works with maximum players
+    // Test 10-player scenario (simplified and robust)
     test("Skip should pass +4 correctly in 10-player game", () => {
         const game = new CardMatchGame("TEST10P");
+        
         // Add 10 players
-        for (let i = 1; i <= 10; i++) {
-            game.addPlayer(`player${i}`, `Player${i}`, `socket${i}`);
+        for (let i = 0; i < 10; i++) {
+            game.addPlayer(`p${i}`, `Player${i}`, `socket${i}`);
         }
         game.startGame();
 
-        // Set up scenario: Player 5 plays +4, Player 6 counters with skip, should go to Player 7
-        const player5 = game.players.get("player5");
-        const player6 = game.players.get("player6");
-        const player7 = game.players.get("player7");
+        // Give all players safe hands (3+ cards)
+        for (let i = 0; i < 10; i++) {
+            const player = game.players.get(`p${i}`);
+            player.hand = [
+                new Card("yellow", "1", "number"),
+                new Card("blue", "2", "number"),
+                new Card("green", "3", "number")
+            ];
+        }
 
-        // Give player5 wild_draw4
-        const wildDraw4 = new Card(null, "wild_draw4", "wild");
-        player5.hand = [wildDraw4, new Card("green", "1", "number")];
-        game.sayCardMatch("player5");
+        // Set up test scenario: p5 has +4, p6 has red skip
+        const p5 = game.players.get("p5");
+        const p6 = game.players.get("p6");
+        p5.hand[0] = new Card(null, "wild_draw4", "wild");
+        p6.hand[0] = new Card("red", "skip", "special");
 
-        // Give player6 red skip  
-        const redSkip = new Card("red", "skip", "special");
-        player6.hand = [redSkip, new Card("blue", "2", "number")];
-        game.sayCardMatch("player6");
-
-        // Give player7 some cards
-        player7.hand = [new Card("yellow", "3", "number"), new Card("red", "4", "number")];
-        game.sayCardMatch("player7");
-
-        // Set up discard pile
+        // Set up controlled game state
         game.deck.discardPile = [new Card("blue", "5", "number")];
         game.drawCount = 0;
         game.lastPlayedWasDraw4 = false;
+        game.skipNext = false;
+        game.currentPlayerIndex = 5; // p5's turn
 
-        // Player5 plays +4 (turn should go to Player6)
-        game.currentPlayerIndex = 4; // Player5 is at index 4
-        game.playCard("player5", 0, "red");
+        // p5 plays +4, chooses red
+        game.playCard("p5", 0, "red");
 
+        // Verify +4 setup
+        if (game.drawCount !== 4 || !game.lastPlayedWasDraw4 || game.currentPlayerIndex !== 6) {
+            throw new Error("Expected +4 setup with p6's turn");
+        }
+
+        // p6 plays red skip to pass +4 to p7
+        game.playCard("p6", 0);
+
+        // Verify skip counter worked
+        if (game.currentPlayerIndex !== 7) {
+            throw new Error(`Expected p7's turn (index 7), but got index ${game.currentPlayerIndex}`);
+        }
         if (game.drawCount !== 4) {
-            throw new Error("Expected drawCount to be 4 after +4");
+            throw new Error("Expected +4 to be passed to p7");
         }
-
-        // Verify it's Player6's turn
-        if (game.currentPlayerIndex !== 5) {
-            throw new Error(`Expected Player6's turn (index 5), but got index ${game.currentPlayerIndex}`);
-        }
-
-        // Player6 plays skip to counter
-        game.playCard("player6", 0);
-
-        // Verify turn goes to Player7 (index 6), NOT back to any previous player
-        const currentPlayer = game.getCurrentPlayer();
-        if (currentPlayer.id !== "player7") {
-            throw new Error(`Expected turn to be Player7's after skip counter, but it's ${currentPlayer.id}'s turn (index: ${game.currentPlayerIndex})`);
-        }
-
-        // Verify +4 is still active for Player7
-        if (game.drawCount !== 4) {
-            throw new Error("Expected drawCount to remain 4 for Player7");
+        if (!game.lastPlayedWasDraw4) {
+            throw new Error("Expected lastPlayedWasDraw4 to remain true (bug fix verification)");
         }
     });
 
-    // Test edge case: turn wrap-around in 10-player game
-    test("Skip should handle turn wrap-around correctly in 10-player game", () => {
+    // Test wrap-around scenario (simplified)
+    test("Skip should handle turn wrap-around correctly", () => {
         const game = new CardMatchGame("TESTWRAP");
-        // Add 10 players
-        for (let i = 1; i <= 10; i++) {
-            game.addPlayer(`player${i}`, `Player${i}`, `socket${i}`);
+        
+        // Add 4 players for simpler wrap-around test
+        for (let i = 0; i < 4; i++) {
+            game.addPlayer(`px${i}`, `PlayerX${i}`, `socketx${i}`);
         }
         game.startGame();
 
-        // Set up scenario: Player 10 plays +4, Player 1 counters with skip, should go to Player 2
-        const player10 = game.players.get("player10");
-        const player1 = game.players.get("player1");
-        const player2 = game.players.get("player2");
+        // Give all players safe hands (3+ cards)
+        for (let i = 0; i < 4; i++) {
+            const player = game.players.get(`px${i}`);
+            player.hand = [
+                new Card("yellow", "1", "number"),
+                new Card("blue", "2", "number"),
+                new Card("green", "3", "number")
+            ];
+        }
 
-        // Give player10 wild_draw4
-        const wildDraw4 = new Card(null, "wild_draw4", "wild");
-        player10.hand = [wildDraw4, new Card("green", "1", "number")];
-        game.sayCardMatch("player10");
+        // Set up test: px3 (last player) has +4, px0 (first player) has red skip
+        const px3 = game.players.get("px3");
+        const px0 = game.players.get("px0");
+        px3.hand[0] = new Card(null, "wild_draw4", "wild");
+        px0.hand[0] = new Card("red", "skip", "special");
 
-        // Give player1 red skip  
-        const redSkip = new Card("red", "skip", "special");
-        player1.hand = [redSkip, new Card("blue", "2", "number")];
-        game.sayCardMatch("player1");
-
-        // Give player2 some cards
-        player2.hand = [new Card("yellow", "3", "number"), new Card("red", "4", "number")];
-        game.sayCardMatch("player2");
-
-        // Set up discard pile
+        // Set up controlled game state
         game.deck.discardPile = [new Card("blue", "5", "number")];
         game.drawCount = 0;
         game.lastPlayedWasDraw4 = false;
+        game.skipNext = false;
+        game.currentPlayerIndex = 3; // px3's turn
 
-        // Player10 plays +4 (turn should wrap to Player1)
-        game.currentPlayerIndex = 9; // Player10 is at index 9
-        game.playCard("player10", 0, "red");
+        // px3 plays +4, chooses red (should wrap to px0)
+        game.playCard("px3", 0, "red");
 
-        // Verify it's Player1's turn (index 0)
+        // Verify wrap to px0
         if (game.currentPlayerIndex !== 0) {
-            throw new Error(`Expected Player1's turn (index 0), but got index ${game.currentPlayerIndex}`);
+            throw new Error(`Expected px0's turn (index 0), but got index ${game.currentPlayerIndex}`);
         }
 
-        // Player1 plays skip to counter
-        game.playCard("player1", 0);
+        // px0 plays red skip to pass +4 to px1
+        game.playCard("px0", 0);
 
-        // Verify turn goes to Player2 (index 1), demonstrating proper wrap-around
-        const currentPlayer = game.getCurrentPlayer();
-        if (currentPlayer.id !== "player2") {
-            throw new Error(`Expected turn to be Player2's after wrap-around skip counter, but it's ${currentPlayer.id}'s turn (index: ${game.currentPlayerIndex})`);
+        // Verify wrap-around skip worked
+        if (game.currentPlayerIndex !== 1) {
+            throw new Error(`Expected px1's turn (index 1), but got index ${game.currentPlayerIndex}`);
         }
-
-        // Verify +4 is still active for Player2
         if (game.drawCount !== 4) {
-            throw new Error("Expected drawCount to remain 4 for Player2");
+            throw new Error("Expected +4 to be passed to px1");
+        }
+        if (!game.lastPlayedWasDraw4) {
+            throw new Error("Expected lastPlayedWasDraw4 to remain true (bug fix verification)");
+        }
+    });
+
+    // Test bug fix: +2 restriction after skip counter (simplified)
+    test("After skip counters +4, next player cannot play +2 of same color", () => {
+        const game = new CardMatchGame("TESTBUG");
+        game.addPlayer("pA", "Alice", "socketA");
+        game.addPlayer("pB", "Bob", "socketB");
+        game.addPlayer("pC", "Carol", "socketC");
+        game.startGame();
+
+        // Give all players safe hands (3+ cards)
+        const pA = game.players.get("pA");
+        const pB = game.players.get("pB");
+        const pC = game.players.get("pC");
+
+        pA.hand = [new Card(null, "wild_draw4", "wild"), new Card("green", "1", "number"), new Card("blue", "5", "number")];
+        pB.hand = [new Card("red", "skip", "special"), new Card("blue", "2", "number"), new Card("yellow", "6", "number")];
+        pC.hand = [new Card("red", "draw2", "special"), new Card("yellow", "3", "number"), new Card("green", "7", "number")];
+
+        // Set up controlled game state
+        game.deck.discardPile = [new Card("blue", "4", "number")];
+        game.drawCount = 0;
+        game.lastPlayedWasDraw4 = false;
+        game.skipNext = false;
+        game.currentPlayerIndex = 0; // pA's turn
+
+        // pA plays +4, chooses red
+        game.playCard("pA", 0, "red");
+
+        // Verify +4 setup and pB's turn
+        if (game.drawCount !== 4 || !game.lastPlayedWasDraw4 || game.currentPlayerIndex !== 1) {
+            throw new Error("Expected +4 setup with pB's turn");
+        }
+
+        // pB plays red skip to pass +4 to pC
+        game.playCard("pB", 0);
+
+        // Verify pC's turn and +4 still active
+        if (game.currentPlayerIndex !== 2) {
+            throw new Error("Expected pC's turn after skip counter");
+        }
+        if (game.drawCount !== 4 || !game.lastPlayedWasDraw4) {
+            throw new Error("Expected +4 to remain active for pC");
+        }
+
+        // pC should NOT be able to play red +2 (bug fix verification)
+        let canPlayDraw2 = false;
+        try {
+            game.playCard("pC", 0); // Try to play red +2
+            canPlayDraw2 = true;
+        } catch (error) {
+            // Should throw error - red +2 not allowed after +4 counter
+            canPlayDraw2 = false;
+        }
+
+        if (canPlayDraw2) {
+            throw new Error("BUG: pC should NOT be able to play red +2 after skip counter!");
         }
     });
 

@@ -414,10 +414,10 @@ class CardMatchGame {
           this.drawCount > 0 &&
           card.color === this.declaredColor
         ) {
-          // Skip passes the +4 to the next player - drawCount remains, but lastPlayedWasDraw4 is reset
-          this.lastPlayedWasDraw4 = false;
+          // Skip passes the +4 to the next player - drawCount remains AND lastPlayedWasDraw4 stays true
+          // Don't reset lastPlayedWasDraw4 because the +4 is still active for the next player
           // Don't set skipNext - just let turn flow naturally to pass +4 to next player
-          // The +4 will be handled by the next player in normal turn order
+          // The next player will still be restricted to skip/reverse/+4 only
         } else {
           this.skipNext = true;
         }
@@ -432,9 +432,9 @@ class CardMatchGame {
         ) {
           // Reverse sends the +4 back to the original player who played it
           this.direction *= -1;
-          this.lastPlayedWasDraw4 = false;
-          // Keep drawCount - the original player will have to draw the cards
-          // After direction change, current player becomes the original +4 player
+          // Keep lastPlayedWasDraw4 = true because the +4 is still active
+          // Keep drawCount - the original player will have to handle the +4 with restricted rules
+          // After direction change, the original +4 player will be restricted to skip/reverse/+4 only
         } else {
           this.direction *= -1;
           // In 2-player game, reverse acts like skip

@@ -206,15 +206,15 @@ function runTests() {
     // Play the skip card with player2 (regardless of whose turn it currently is for testing purposes)
     game.playCard("player2", skipCardIndex); // Play red skip
 
-    // After playing skip, drawCount should remain (passed to next player) and the counter should work
+    // After playing skip, drawCount should remain (passed to next player) and +4 rules still apply
     if (game.drawCount !== 4) {
       throw new Error("Expected drawCount to remain 4 after skip (passed to next player)");
     }
-    if (game.lastPlayedWasDraw4) {
-      throw new Error("Expected lastPlayedWasDraw4 to be false after counter");
+    if (!game.lastPlayedWasDraw4) {
+      throw new Error("Expected lastPlayedWasDraw4 to remain true after skip counter (next player still restricted to +4 rules)");
     }
     // Note: skipNext will be false here because it gets consumed by moveToNextPlayer()
-    // The important thing is that drawCount remains 4 and lastPlayedWasDraw4 is false
+    // The important thing is that drawCount remains 4 and lastPlayedWasDraw4 stays true for next player
   });
 
   console.log(`\n🎯 Test Results: ${passed} passed, ${failed} failed`);
