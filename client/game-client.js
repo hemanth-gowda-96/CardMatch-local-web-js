@@ -79,6 +79,14 @@ class CardMatchClient {
         this.showNotificationCard(finishMessage, "success");
       }
 
+      // Store finishing order in game state when received
+      if (data.finishingOrder) {
+        if (!this.gameState) {
+          this.gameState = {};
+        }
+        this.gameState.finishingOrder = data.finishingOrder;
+      }
+
       this.showMessage(
         message,
         data.invalidWin || data.cardMatchViolation ? "warning" : "info"

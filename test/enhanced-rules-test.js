@@ -139,7 +139,7 @@ function testEnhanced4CounterRules() {
     // Test 10-player scenario (simplified and robust)
     test("Skip should pass +4 correctly in 10-player game", () => {
         const game = new CardMatchGame("TEST10P");
-        
+
         // Add 10 players
         for (let i = 0; i < 10; i++) {
             game.addPlayer(`p${i}`, `Player${i}`, `socket${i}`);
@@ -195,7 +195,7 @@ function testEnhanced4CounterRules() {
     // Test wrap-around scenario (simplified)
     test("Skip should handle turn wrap-around correctly", () => {
         const game = new CardMatchGame("TESTWRAP");
-        
+
         // Add 4 players for simpler wrap-around test
         for (let i = 0; i < 4; i++) {
             game.addPlayer(`px${i}`, `PlayerX${i}`, `socketx${i}`);
