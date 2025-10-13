@@ -1,5 +1,5 @@
-// UNO Game Client JavaScript
-class UnoClient {
+// CardMatch Game Client JavaScript
+class CardMatchClient {
   constructor() {
     this.socket = null;
     this.gameState = null;
@@ -68,8 +68,8 @@ class UnoClient {
         this.showNotificationCard(data.message, "error");
       }
 
-      if (data.unoViolation) {
-        message = `${data.playerName} didn't say UNO! 5 card penalty!`;
+      if (data.cardMatchViolation) {
+        message = `${data.playerName} didn't say CardMatch! 5 card penalty!`;
         this.showNotificationCard(data.message, "warning");
       }
 
@@ -79,9 +79,17 @@ class UnoClient {
         this.showNotificationCard(finishMessage, "success");
       }
 
+      // Store finishing order in game state when received
+      if (data.finishingOrder) {
+        if (!this.gameState) {
+          this.gameState = {};
+        }
+        this.gameState.finishingOrder = data.finishingOrder;
+      }
+
       this.showMessage(
         message,
-        data.invalidWin || data.unoViolation ? "warning" : "info"
+        data.invalidWin || data.cardMatchViolation ? "warning" : "info"
       );
 
       if (data.gameEnded) {
@@ -113,18 +121,18 @@ class UnoClient {
       this.showMessage(`${data.playerName} passed their turn`, "info");
     });
 
-    this.socket.on("unoSaid", (data) => {
-      this.showMessage(`${data.playerName} said UNO!`, "warning");
+    this.socket.on("cardMatchSaid", (data) => {
+      this.showMessage(`${data.playerName} said CardMatch!`, "warning");
     });
 
-    this.socket.on("unoChallenged", (data) => {
+    this.socket.on("cardMatchChallenged", (data) => {
       if (data.valid) {
         this.showMessage(
-          `UNO challenge successful! Player drew ${data.penalty} cards`,
+          `CardMatch challenge successful! Player drew ${data.penalty} cards`,
           "warning"
         );
       } else {
-        this.showMessage("Invalid UNO challenge", "info");
+        this.showMessage("Invalid CardMatch challenge", "info");
       }
     });
   }
@@ -163,8 +171,8 @@ class UnoClient {
       this.passTurn();
     });
 
-    document.getElementById("uno-btn").addEventListener("click", () => {
-      this.sayUno();
+    document.getElementById("cardmatch-btn").addEventListener("click", () => {
+      this.sayCardMatch();
     });
 
     document.getElementById("leave-game-btn").addEventListener("click", () => {
@@ -306,9 +314,9 @@ class UnoClient {
     document.getElementById("pass-turn-btn").classList.add("hidden");
   }
 
-  sayUno() {
-    this.socket.emit("sayUno");
-    document.getElementById("uno-btn").classList.add("hidden");
+  sayCardMatch() {
+    this.socket.emit("sayCardMatch");
+    document.getElementById("cardmatch-btn").classList.add("hidden");
   }
 
   playCard(cardIndex) {
@@ -402,11 +410,11 @@ class UnoClient {
     // Update player circle
     this.updatePlayerCircle(state);
 
-    // Update UNO button visibility
+    // Update CardMatch button visibility
     if (state.yourHand.length === 2) {
-      document.getElementById("uno-btn").classList.remove("hidden");
+      document.getElementById("cardmatch-btn").classList.remove("hidden");
     } else {
-      document.getElementById("uno-btn").classList.add("hidden");
+      document.getElementById("cardmatch-btn").classList.add("hidden");
     }
 
     // Update turn-based UI
@@ -471,11 +479,6 @@ class UnoClient {
     const playersContainer = document.getElementById("players-list-game");
     const turnDirection = document.getElementById("turn-direction");
 
-    console.log("Updating player circle with state:", state);
-    console.log("Players container:", playersContainer);
-    console.log("Player order:", state.playerOrder);
-    console.log("Players:", state.players);
-
     // Update direction indicator
     turnDirection.textContent = state.direction === 1 ? "↻" : "↺";
     turnDirection.className = state.direction === 1 ? "" : "counterclockwise";
@@ -483,7 +486,6 @@ class UnoClient {
     playersContainer.innerHTML = "";
 
     if (!state.playerOrder || state.playerOrder.length === 0) {
-      console.log("No player order found, returning");
       return;
     }
 
@@ -493,11 +495,8 @@ class UnoClient {
     state.playerOrder.forEach((playerId, orderIndex) => {
       const player = state.players.find((p) => p.id === playerId);
       if (!player) {
-        console.log("Player not found for ID:", playerId);
         return;
       }
-
-      console.log("Creating player element for:", player.name);
       const playerElement = document.createElement("div");
       playerElement.className = "player-position";
 
@@ -534,14 +533,8 @@ class UnoClient {
         <div class="player-cards-circle">${player.handSize} cards</div>
       `;
 
-      console.log("Appending player element:", playerElement);
       playersContainer.appendChild(playerElement);
     });
-
-    console.log(
-      "Final container children count:",
-      playersContainer.children.length
-    );
   }
 
   canPlayCard(card) {
@@ -756,5 +749,5 @@ document.head.appendChild(style);
 
 // Initialize the game client when the page loads
 document.addEventListener("DOMContentLoaded", () => {
-  new UnoClient();
+  new CardMatchClient();
 });

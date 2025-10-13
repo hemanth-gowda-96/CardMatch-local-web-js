@@ -1,4 +1,4 @@
-// UNO Game Constants and Rules
+// CardMatch Game Constants and Rules
 const COLORS = ["red", "blue", "green", "yellow"];
 const SPECIAL_CARDS = ["skip", "reverse", "draw2"];
 const WILD_CARDS = ["wild", "wild_draw4"];

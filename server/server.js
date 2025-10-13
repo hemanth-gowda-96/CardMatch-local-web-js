@@ -3,7 +3,7 @@ const http = require("http");
 const socketIo = require("socket.io");
 const path = require("path");
 const { v4: uuidv4 } = require("uuid");
-const { UnoGame } = require("../shared/game");
+const { CardMatchGame } = require("../shared/game");
 
 const app = express();
 const server = http.createServer(app);
@@ -74,7 +74,7 @@ io.on("connection", (socket) => {
     try {
       const roomId = generateRoomCode();
       const playerId = uuidv4();
-      const game = new UnoGame(roomId);
+      const game = new CardMatchGame(roomId);
 
       // Add player to game
       const player = game.addPlayer(playerId, playerName, socket.id);
@@ -194,7 +194,7 @@ io.on("connection", (socket) => {
         gameEnded: result.gameEnded,
         winner: result.winner,
         invalidWin: result.invalidWin,
-        unoViolation: result.unoViolation,
+        cardMatchViolation: result.cardMatchViolation,
         message: result.message,
         playerFinished: result.playerFinished,
         finishingOrder: result.finishingOrder,
@@ -243,8 +243,8 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Say UNO
-  socket.on("sayUno", () => {
+  // Say CardMatch
+  socket.on("sayCardMatch", () => {
     try {
       const playerInfo = playerSockets.get(socket.id);
       if (!playerInfo) return;
@@ -252,10 +252,10 @@ io.on("connection", (socket) => {
       const game = games.get(playerInfo.roomId);
       if (!game) return;
 
-      const success = game.sayUno(playerInfo.playerId);
+      const success = game.sayCardMatch(playerInfo.playerId);
 
       if (success) {
-        io.to(playerInfo.roomId).emit("unoSaid", {
+        io.to(playerInfo.roomId).emit("cardMatchSaid", {
           playerId: playerInfo.playerId,
           playerName: playerInfo.playerName,
         });
@@ -265,8 +265,8 @@ io.on("connection", (socket) => {
     }
   });
 
-  // Challenge UNO
-  socket.on("challengeUno", (challengedPlayerId) => {
+  // Challenge CardMatch
+  socket.on("challengeCardMatch", (challengedPlayerId) => {
     try {
       const playerInfo = playerSockets.get(socket.id);
       if (!playerInfo) return;
@@ -274,9 +274,9 @@ io.on("connection", (socket) => {
       const game = games.get(playerInfo.roomId);
       if (!game) return;
 
-      const result = game.challengeUno(playerInfo.playerId, challengedPlayerId);
+      const result = game.challengeCardMatch(playerInfo.playerId, challengedPlayerId);
 
-      io.to(playerInfo.roomId).emit("unoChallenged", {
+      io.to(playerInfo.roomId).emit("cardMatchChallenged", {
         challengerId: playerInfo.playerId,
         challengedId: challengedPlayerId,
         valid: result.valid,
@@ -352,7 +352,7 @@ const PORT = process.env.PORT || 3000;
 const localIP = getLocalIP();
 
 server.listen(PORT, "0.0.0.0", () => {
-  console.log(`🃏 UNO Game Server running on:`);
+  console.log(`🃏 CardMatch Game Server running on:`);
   console.log(`   Local: http://localhost:${PORT}`);
   console.log(`   WSL: http://${localIP}:${PORT}`);
   console.log(`   Windows Host: Configure port forwarding for network access`);

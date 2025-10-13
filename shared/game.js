@@ -9,7 +9,7 @@ class Player {
     this.hand = [];
     this.isReady = false;
     this.hasDrawnCard = false;
-    this.saidUno = false;
+    this.saidCardMatch = false;
   }
 
   addCards(cards) {
@@ -54,11 +54,11 @@ class Player {
     this.hand = [];
     this.isReady = false;
     this.hasDrawnCard = false;
-    this.saidUno = false;
+    this.saidCardMatch = false;
   }
 }
 
-class UnoGame {
+class CardMatchGame {
   constructor(roomId, maxPlayers = 10) {
     this.roomId = roomId;
     this.maxPlayers = maxPlayers;
@@ -222,9 +222,32 @@ class UnoGame {
       throw new Error("Not your turn");
     }
 
-    if (
-      !player.canPlayCard(cardIndex, this.deck.getTopCard(), this.declaredColor)
-    ) {
+    // Check if card can be played (normal rules or special draw stacking rules)
+    let canPlay = player.canPlayCard(cardIndex, this.deck.getTopCard(), this.declaredColor);
+
+    // If normal play fails but there are pending draws, check special rules
+    if (!canPlay && this.drawCount > 0) {
+      const card = player.hand[cardIndex];
+      if (this.lastPlayedWasDraw4) {
+        // Special rule: After +4, only Skip/Reverse of declared color or another +4 allowed
+        if (card.value === "wild_draw4") {
+          canPlay = true;
+        } else if (
+          this.declaredColor &&
+          (card.value === "skip" || card.value === "reverse") &&
+          card.color === this.declaredColor
+        ) {
+          canPlay = true;
+        }
+      } else {
+        // Normal draw stacking: can play draw2 or wild_draw4
+        if (card.value === "draw2" || card.value === "wild_draw4") {
+          canPlay = true;
+        }
+      }
+    }
+
+    if (!canPlay) {
       throw new Error("Invalid card play");
     }
 
@@ -263,16 +286,16 @@ class UnoGame {
       }
     }
 
-    // Check for UNO penalty BEFORE playing the card
+    // Check for CardMatch penalty BEFORE playing the card
     const handSizeBeforePlay = player.getHandSize();
-    if (handSizeBeforePlay === 2 && !player.saidUno) {
-      // Player will have 1 card after playing but didn't say UNO - penalty!
+    if (handSizeBeforePlay === 2 && !player.saidCardMatch) {
+      // Player will have 1 card after playing but didn't say CardMatch - penalty!
       const penaltyCards = this.deck.drawCards(5);
       player.addCards(penaltyCards);
       return {
         gameEnded: false,
-        unoViolation: true,
-        message: `${player.name} didn't say UNO! Draw 5 penalty cards.`,
+        cardMatchViolation: true,
+        message: `${player.name} didn't say CardMatch! Draw 5 penalty cards.`,
       };
     }
 
@@ -288,17 +311,18 @@ class UnoGame {
         throw new Error("Must declare a color for wild card");
       }
       this.declaredColor = declaredColor;
-    } else {
-      this.declaredColor = null;
     }
 
     // Reset draw flag
     player.hasDrawnCard = false;
 
-    // Reset UNO flag if player has more than 1 card after playing
+    // Reset CardMatch flag if player has more than 1 card after playing
     if (player.getHandSize() > 1) {
-      player.saidUno = false;
+      player.saidCardMatch = false;
     }
+
+    // Handle special card effects
+    const specialResult = this.handleSpecialCard(playedCard, player);
 
     // Check for win - cannot win with action cards
     if (player.getHandSize() === 0) {
@@ -371,15 +395,12 @@ class UnoGame {
       };
     }
 
-    // Handle special card effects
-    const result = this.handleSpecialCard(playedCard, player);
-
     // Move to next player (unless direction changed or player was skipped)
-    if (!result.skipTurn) {
+    if (!specialResult.skipTurn) {
       this.moveToNextPlayer();
     }
 
-    return { gameEnded: false, ...result };
+    return { gameEnded: false, ...specialResult };
   }
 
   handleSpecialCard(card, player) {
@@ -393,10 +414,10 @@ class UnoGame {
           this.drawCount > 0 &&
           card.color === this.declaredColor
         ) {
-          // Skip counters the +4 - next player doesn't draw
-          this.drawCount = 0;
-          this.lastPlayedWasDraw4 = false;
-          this.skipNext = true; // Skip the next player
+          // Skip passes the +4 to the next player - drawCount remains AND lastPlayedWasDraw4 stays true
+          // Don't reset lastPlayedWasDraw4 because the +4 is still active for the next player
+          // Don't set skipNext - just let turn flow naturally to pass +4 to next player
+          // The next player will still be restricted to skip/reverse/+4 only
         } else {
           this.skipNext = true;
         }
@@ -409,10 +430,11 @@ class UnoGame {
           this.drawCount > 0 &&
           card.color === this.declaredColor
         ) {
-          // Reverse counters the +4 - direction changes and original player draws
+          // Reverse sends the +4 back to the original player who played it
           this.direction *= -1;
-          this.lastPlayedWasDraw4 = false;
-          // Don't clear drawCount - let the original player draw the cards
+          // Keep lastPlayedWasDraw4 = true because the +4 is still active
+          // Keep drawCount - the original player will have to handle the +4 with restricted rules
+          // After direction change, the original +4 player will be restricted to skip/reverse/+4 only
         } else {
           this.direction *= -1;
           // In 2-player game, reverse acts like skip
@@ -467,9 +489,9 @@ class UnoGame {
       this.drawCount = 0;
       this.lastPlayedWasDraw4 = false; // Reset flag after drawing
 
-      // Reset UNO flag since player now has more cards
+      // Reset CardMatch flag since player now has more cards
       if (player.getHandSize() > 1) {
-        player.saidUno = false;
+        player.saidCardMatch = false;
       }
 
       // Check if any of the drawn cards are playable
@@ -492,9 +514,9 @@ class UnoGame {
       player.addCards(card);
       player.hasDrawnCard = true;
 
-      // Reset UNO flag since player now has more cards
+      // Reset CardMatch flag since player now has more cards
       if (player.getHandSize() > 1) {
-        player.saidUno = false;
+        player.saidCardMatch = false;
       }
 
       // Check if drawn card is playable
@@ -540,21 +562,21 @@ class UnoGame {
     return { success: true };
   }
 
-  sayUno(playerId) {
+  sayCardMatch(playerId) {
     const player = this.players.get(playerId);
     if (!player) {
       throw new Error("Player not found");
     }
 
     if (player.getHandSize() === 2) {
-      player.saidUno = true;
+      player.saidCardMatch = true;
       return true;
     }
 
     return false;
   }
 
-  challengeUno(challengerId, challengedId) {
+  challengeCardMatch(challengerId, challengedId) {
     const challenger = this.players.get(challengerId);
     const challenged = this.players.get(challengedId);
 
@@ -562,7 +584,7 @@ class UnoGame {
       throw new Error("Player not found");
     }
 
-    if (challenged.getHandSize() === 1 && !challenged.saidUno) {
+    if (challenged.getHandSize() === 1 && !challenged.saidCardMatch) {
       // Valid challenge - challenged player draws 2 cards
       const penaltyCards = this.deck.drawCards(2);
       challenged.addCards(penaltyCards);
@@ -626,4 +648,4 @@ class UnoGame {
   }
 }
 
-module.exports = { Player, UnoGame };
+module.exports = { Player, CardMatchGame };

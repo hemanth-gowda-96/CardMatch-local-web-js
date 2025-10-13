@@ -1,13 +1,13 @@
-# Network Setup Guide for UNO Game on WSL
+# Network Setup Guide for CardMatch Game on WSL
 
-This guide will help you make your UNO game accessible from other devices on your local WiFi network (192.168.29.x).
+This guide will help you make your CardMatch game accessible from other devices on your local WiFi network (192.168.29.x).
 
 ## Quick Setup Steps
 
-### 1. Start the UNO Server
+### 1. Start the CardMatch Server
 
 ```bash
-cd /home/hemanth-dev/projects/uno-local-js
+cd /home/hemanth-dev/projects/cardmatch-local-js
 npm start
 ```
 
@@ -35,16 +35,16 @@ netsh interface portproxy show all
 4. Select **TCP** and **Specific local ports**: `3000`
 5. Select **Allow the connection**
 6. Apply to all profiles (Domain, Private, Public)
-7. Name it "UNO Game Server"
+7. Name it "CardMatch Game Server"
 
 #### Option B: Using PowerShell (Administrator)
 
 ```powershell
 # Allow inbound traffic on port 3000
-New-NetFirewallRule -DisplayName "UNO Game Server" -Direction Inbound -Port 3000 -Protocol TCP -Action Allow
+New-NetFirewallRule -DisplayName "CardMatch Game Server" -Direction Inbound -Port 3000 -Protocol TCP -Action Allow
 
 # Allow outbound traffic on port 3000 (if needed)
-New-NetFirewallRule -DisplayName "UNO Game Server Out" -Direction Outbound -Port 3000 -Protocol TCP -Action Allow
+New-NetFirewallRule -DisplayName "CardMatch Game Server Out" -Direction Outbound -Port 3000 -Protocol TCP -Action Allow
 ```
 
 ### 4. Test Network Access
@@ -84,13 +84,13 @@ netsh interface portproxy delete v4tov4 listenport=3000 listenaddress=0.0.0.0
 ### Remove firewall rule (if needed):
 
 ```powershell
-Remove-NetFirewallRule -DisplayName "UNO Game Server"
+Remove-NetFirewallRule -DisplayName "CardMatch Game Server"
 ```
 
 ## Network Architecture
 
 ```
-[WiFi Device] → 192.168.29.38:3000 → [Windows] → [WSL: 192.168.103.49:3000] → [UNO Server]
+[WiFi Device] → 192.168.29.38:3000 → [Windows] → [WSL: 192.168.103.49:3000] → [CardMatch Server]
 ```
 
 The port forwarding rule routes network traffic from your Windows host to the WSL instance running the game server.

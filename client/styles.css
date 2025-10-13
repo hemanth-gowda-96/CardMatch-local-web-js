@@ -1,4 +1,4 @@
-/* UNO Game Styles */
+/* CardMatch Game Styles */
 * {
   margin: 0;
   padding: 0;
@@ -258,11 +258,13 @@ input[type="text"]:focus {
     opacity: 0;
     transform: translateX(-20px);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
   }
 }
+
 #game-info {
   display: grid;
   grid-template-columns: 1fr 2fr 1fr;
@@ -293,6 +295,7 @@ input[type="text"]:focus {
   color: #007bff;
   text-align: center;
 }
+
 .center-area {
   display: flex;
   justify-content: center;
@@ -368,7 +371,7 @@ input[type="text"]:focus {
 }
 
 .card.back::before {
-  content: "UNO";
+  content: "CardMatch";
   font-size: 16px;
   font-weight: bold;
 }
@@ -378,18 +381,22 @@ input[type="text"]:focus {
   background-color: #dc3545;
   color: white;
 }
+
 .card.blue {
   background-color: #007bff;
   color: white;
 }
+
 .card.green {
   background-color: #28a745;
   color: white;
 }
+
 .card.yellow {
   background-color: #ffc107;
   color: #333;
 }
+
 .card.wild {
   background: linear-gradient(45deg, #dc3545, #007bff, #28a745, #ffc107);
   color: white;
@@ -527,15 +534,18 @@ input[type="text"]:focus {
   0% {
     box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
   }
+
   70% {
     box-shadow: 0 0 0 10px rgba(40, 167, 69, 0);
   }
+
   100% {
     box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
   }
 }
 
 @keyframes bounce {
+
   0%,
   20%,
   50%,
@@ -543,9 +553,11 @@ input[type="text"]:focus {
   100% {
     transform: translateY(0);
   }
+
   40% {
     transform: translateY(-5px);
   }
+
   60% {
     transform: translateY(-3px);
   }
@@ -587,7 +599,9 @@ input[type="text"]:focus {
 .you-color {
   background: #d1ecf1;
   border-color: #007bff;
-} /* Color Selector Modal */
+}
+
+/* Color Selector Modal */
 .modal {
   position: fixed;
   top: 0;
@@ -635,14 +649,17 @@ input[type="text"]:focus {
   background-color: #dc3545;
   color: white;
 }
+
 .color-btn.blue {
   background-color: #007bff;
   color: white;
 }
+
 .color-btn.green {
   background-color: #28a745;
   color: white;
 }
+
 .color-btn.yellow {
   background-color: #ffc107;
   color: #333;
@@ -745,6 +762,7 @@ input[type="text"]:focus {
     opacity: 0;
     transform: translateY(20px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -756,6 +774,7 @@ input[type="text"]:focus {
     opacity: 0;
     transform: translateX(100%);
   }
+
   to {
     opacity: 1;
     transform: translateX(0);
@@ -781,7 +800,8 @@ input[type="text"]:focus {
   padding: 20px;
   border-radius: 10px;
   margin: 20px 0;
-  display: none; /* Hidden by default since we only show finishing order */
+  display: none;
+  /* Hidden by default since we only show finishing order */
 }
 
 .score-item {

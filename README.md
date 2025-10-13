@@ -1,8 +1,10 @@
-# UNO Local Network Game 🃏
+# CardMatch Local Network Game 🃏
 
-A multiplayer UNO card game that supports up to 10 players over a local network using WebSockets.
+Inspired by the classic UNO card game.
 
-## 🎯 Why Our Version is Better
+A multiplayer CardMatch card game that supports up to 10 players over a local network using WebSockets.
+
+## 🎯 Why CardMatch is Better
 
 The official UNO rules can be frustrating and boring. We've implemented **custom rules** that make the game more strategic, fair, and exciting!
 
@@ -32,12 +34,12 @@ _This creates strategic +4 battles while maintaining logical card interaction ru
 - Prevents cheap wins and encourages more strategic play
 - Forces players to plan their final moves carefully
 
-#### **UNO Penalty System** ⚠️
+#### **CardMatch Penalty System** ⚠️
 
-- Automatic 5-card penalty if you don't call UNO when going to 1 card
-- Penalty triggers immediately when playing your second-to-last card without saying UNO
+- Automatic 5-card penalty if you don't call CardMatch when going to 1 card
+- Penalty triggers immediately when playing your second-to-last card without saying CardMatch
 - No need to remember to press a button - the game handles it automatically
-- Harsh penalty ensures players take UNO calls seriously!
+- Harsh penalty ensures players take CardMatch calls seriously!
 
 #### **Continuous Play Rule** 🏁
 
@@ -54,7 +56,7 @@ _This creates more engagement as everyone plays to avoid being last, not just to
 - Real-time multiplayer gameplay for 2-10 players
 - Local network support (no internet required!)
 - WebSocket-based communication for instant updates
-- **Enhanced UNO rules** that actually make sense
+- **Enhanced CardMatch rules** that actually make sense
 - Responsive web interface that works on phones and computers
 - Real-time game activity feed
 - Visual player indicators and turn management
@@ -143,11 +145,11 @@ npm run dev
 - Strategic planning required ✅
 - Fair and fun for everyone ✅
 
-The official rules were designed for casual family play, but they create frustrating situations in competitive games. Our custom rules maintain the fun of UNO while adding the strategic depth that makes games truly engaging!
+The official rules were designed for casual family play, but they create frustrating situations in competitive games. Our custom rules maintain the fun of CardMatch while adding the strategic depth that makes games truly engaging!
 
 ## 🔥 Rule Philosophy: "Better Than Mattel"
 
-We believe games should be **strategic**, **fair**, and **fun**. The official UNO rules have several problems:
+We believe games should be **strategic**, **fair**, and **fun**. The official CardMatch rules have several problems:
 
 ### Problem 1: Wild Draw 4 is Broken 💔
 
@@ -167,8 +169,8 @@ We believe games should be **strategic**, **fair**, and **fun**. The official UN
 - Few meaningful decisions to make
 - **Our Fix**: Every card interaction has strategic implications
 
-### 🏆 The Result: A Better UNO Experience
+### 🏆 The Result: A Better CardMatch Experience
 
-Our version transforms UNO from a simple luck-fest into a **strategy game with heart**. Every card matters, every decision counts, and victory feels earned rather than random.
+Our version transforms CardMatch from a simple luck-fest into a **strategy game with heart**. Every card matters, every decision counts, and victory feels earned rather than random.
 
-_"This is how UNO should have been designed from the beginning!"_ - Every player who tries our version
+_"This is how CardMatch should have been designed from the beginning!"_ - Every player who tries our version
