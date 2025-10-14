@@ -79,12 +79,65 @@ _This creates more engagement as everyone plays to avoid being last, not just to
 
 4. Share your local IP address with other players on the same network
 
-## Development
+## 🐳 Docker Deployment
 
-Run in development mode with auto-restart:
+### Quick Start with Docker
 
 ```bash
+# Linux/macOS - Start in background
+./docker-helper.sh start-bg
+
+# Windows - Start in background
+docker-helper.bat start-bg
+
+# Or using docker-compose directly
+docker-compose up -d --build
+
+# Access the game at: http://localhost:3000
+```
+
+### Docker Benefits
+
+- ✅ **Consistent Environment**: Same runtime across all machines
+- ✅ **Easy Deployment**: One command setup
+- ✅ **Isolated Dependencies**: No conflicts with system packages
+- ✅ **Production Ready**: Includes health checks and security
+- ✅ **Network Optimized**: Proper port configuration
+
+See [DOCKER.md](DOCKER.md) for detailed Docker documentation and troubleshooting.
+
+## Development
+
+### Local Development (without Docker)
+
+```bash
+# Install dependencies
+npm install
+
+# Run in development mode with auto-restart
 npm run dev
+
+# Run tests
+npm test
+```
+
+### Docker Commands
+
+```bash
+# Build Docker image
+./docker-helper.sh build
+
+# Start CardMatch (background)
+./docker-helper.sh start-bg
+
+# View logs
+./docker-helper.sh logs
+
+# Stop CardMatch
+./docker-helper.sh stop
+
+# Show container status
+./docker-helper.sh status
 ```
 
 ## 🏗️ Technical Features

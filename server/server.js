@@ -366,7 +366,7 @@ server.listen(PORT, "0.0.0.0", () => {
     `\n🔥 Windows Firewall: Allow port ${PORT} in Windows Defender Firewall`
   );
   console.log(
-    `\n🌐 Then share this with other players: http://192.168.29.38:${PORT}`
+    `\n🌐 Then share this with other players: http://${localIP}:${PORT}`
   );
 });
 
