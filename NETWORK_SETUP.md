@@ -16,7 +16,7 @@ npm start
 Open **Windows PowerShell as Administrator** and run:
 
 ```powershell
-# Forward traffic from Windows host (192.168.29.38) to WSL
+# Forward traffic from Windows host to WSL
 netsh interface portproxy add v4tov4 listenport=3000 listenaddress=0.0.0.0 connectport=3000 connectaddress=192.168.103.49
 
 # Verify the port forwarding rule
@@ -50,13 +50,13 @@ New-NetFirewallRule -DisplayName "CardMatch Game Server Out" -Direction Outbound
 ### 4. Test Network Access
 
 1. **From your Windows machine:** Open `http://localhost:3000`
-2. **From other devices on WiFi:** Open `http://192.168.29.38:3000`
+2. **From other devices on WiFi:** Open `http://YOUR_WINDOWS_IP:3000`
 
 ## Troubleshooting
 
 ### If other devices can't connect:
 
-1. **Check Windows IP:** Verify your Windows machine's IP is indeed `192.168.29.38`:
+1. **Check Windows IP:** Find your Windows machine's IP address:
 
    ```cmd
    ipconfig
@@ -90,7 +90,7 @@ Remove-NetFirewallRule -DisplayName "CardMatch Game Server"
 ## Network Architecture
 
 ```
-[WiFi Device] → 192.168.29.38:3000 → [Windows] → [WSL: 192.168.103.49:3000] → [CardMatch Server]
+[WiFi Device] → YOUR_WINDOWS_IP:3000 → [Windows] → [WSL: WSL_IP:3000] → [CardMatch Server]
 ```
 
 The port forwarding rule routes network traffic from your Windows host to the WSL instance running the game server.
@@ -106,9 +106,9 @@ This configuration allows any device on your local network to access the game. O
 ## Game URLs to Share
 
 - **Host (Windows):** `http://localhost:3000`
-- **Network Players:** `http://192.168.29.38:3000`
+- **Network Players:** `http://YOUR_WINDOWS_IP:3000`
 - **WSL Direct:** `http://192.168.103.49:3000` (may not work from other devices)
 
 ---
 
-🎮 **Happy Gaming!** Share `http://192.168.29.38:3000` with up to 9 friends on your WiFi network!
+🎮 **Happy Gaming!** Share `http://YOUR_WINDOWS_IP:3000` with up to 9 friends on your WiFi network!
