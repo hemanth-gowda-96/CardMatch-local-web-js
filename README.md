@@ -182,51 +182,21 @@ npm test
 
 ## 🎲 Why These Rules Matter
 
-**Official UNO Problems:**
-
-- Wild Draw 4 is overpowered and undefendable ❌
-- Illogical card stacking (mixing +2 and +4) ❌
-- Winning with action cards feels cheap ❌
-- Limited strategic depth ❌
-- Frustrating "gotcha" moments ❌
-
-**Our Solution:**
-
-- Every card has a counter-strategy ✅
-- Logical card type interactions ✅
-- More skill-based gameplay ✅
-- Strategic planning required ✅
-- Fair and fun for everyone ✅
-
 The official rules were designed for casual family play, but they create frustrating situations in competitive games. Our custom rules maintain the fun of CardMatch while adding the strategic depth that makes games truly engaging!
 
 ## 🔥 Rule Philosophy: "Better Than Mattel"
 
 We believe games should be **strategic**, **fair**, and **fun**. The official CardMatch rules have several problems:
 
-### Problem 1: Wild Draw 4 is Broken 💔
-
-- In official rules, it's an "I win" button with no counterplay
-- Creates feel-bad moments where skill doesn't matter
-- **Our Fix**: Defense cards make it counterable and strategic
-
-### Problem 2: Action Card Wins Feel Cheap 🎭
-
-- Official rules allow winning with any card
-- Leads to unsatisfying victories
-- **Our Fix**: Must win with number/color cards, requiring planning
-
-### Problem 3: Limited Strategic Depth 🧠
+### Problem : Limited Strategic Depth 🧠
 
 - Official rules are mostly luck-based
 - Few meaningful decisions to make
-- **Our Fix**: Every card interaction has strategic implications
+- **Our Fix**: Every card interaction has strategic implications - Not in near future 
 
 ### 🏆 The Result: A Better CardMatch Experience
 
 Our version transforms CardMatch from a simple luck-fest into a **strategy game with heart**. Every card matters, every decision counts, and victory feels earned rather than random.
-
-_"This is how CardMatch should have been designed from the beginning!"_ - Every player who tries our version
 
 ## 📋 Development Status & TODO
 
@@ -245,7 +215,7 @@ _"This is how CardMatch should have been designed from the beginning!"_ - Every 
 See [TODO.md](TODO.md) for detailed improvement plans and implementation roadmap.
 
 ### Contributing:
-This is an active project! Check the TODO document for areas where help is needed, especially:
+This is an hobby project! Check the TODO document for areas where help is needed, especially:
 - Mobile-first responsive design
 - Touch interface improvements
 - Cross-browser testing
