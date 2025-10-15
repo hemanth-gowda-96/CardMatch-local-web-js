@@ -227,3 +227,25 @@ We believe games should be **strategic**, **fair**, and **fun**. The official Ca
 Our version transforms CardMatch from a simple luck-fest into a **strategy game with heart**. Every card matters, every decision counts, and victory feels earned rather than random.
 
 _"This is how CardMatch should have been designed from the beginning!"_ - Every player who tries our version
+
+## 📋 Development Status & TODO
+
+### Current Status: ✅ **Production Ready**
+- ✅ Core game mechanics working
+- ✅ Enhanced +4 rules implemented  
+- ✅ Multi-player support (up to 10 players)
+- ✅ Docker containerization
+- ✅ Network setup guides
+
+### Known Issues & Improvements Needed:
+- 📱 **Responsive Design**: Mobile and small laptop screen optimization needed
+- 🎨 **UI Polish**: Interface improvements for better user experience
+- 🔧 **Performance**: WebSocket and animation optimizations
+
+See [TODO.md](TODO.md) for detailed improvement plans and implementation roadmap.
+
+### Contributing:
+This is an active project! Check the TODO document for areas where help is needed, especially:
+- Mobile-first responsive design
+- Touch interface improvements
+- Cross-browser testing
