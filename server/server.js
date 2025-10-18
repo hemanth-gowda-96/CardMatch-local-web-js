@@ -39,6 +39,30 @@ function generateRoomCode() {
   return Math.random().toString(36).substring(2, 8).toUpperCase();
 }
 
+// Validate and sanitize custom room names
+function validateRoomName(roomName) {
+  if (!roomName || typeof roomName !== 'string') {
+    return { valid: false, error: "Room name is required" };
+  }
+
+  const trimmed = roomName.trim();
+
+  if (trimmed.length < 1) {
+    return { valid: false, error: "Room name cannot be empty" };
+  }
+
+  if (trimmed.length > 20) {
+    return { valid: false, error: "Room name must be 20 characters or less" };
+  }
+
+  // Allow letters, numbers, spaces, hyphens, and underscores
+  if (!/^[a-zA-Z0-9\s\-_]+$/.test(trimmed)) {
+    return { valid: false, error: "Room name can only contain letters, numbers, spaces, hyphens, and underscores" };
+  }
+
+  return { valid: true, sanitized: trimmed };
+}
+
 // Broadcast game state to all players in a room
 function broadcastGameState(roomId, excludeSocket = null) {
   const game = games.get(roomId);
@@ -70,9 +94,34 @@ io.on("connection", (socket) => {
   console.log("Player connected:", socket.id);
 
   // Create a new game room
-  socket.on("createRoom", (playerName) => {
+  socket.on("createRoom", (data) => {
     try {
-      const roomId = generateRoomCode();
+      // Handle both old format (just playerName) and new format (object with playerName and customRoomName)
+      const playerName = typeof data === 'string' ? data : data.playerName;
+      const customRoomName = typeof data === 'object' ? data.customRoomName : '';
+
+      let roomId;
+
+      if (customRoomName) {
+        // Validate custom room name
+        const validation = validateRoomName(customRoomName);
+        if (!validation.valid) {
+          socket.emit("error", { message: validation.error });
+          return;
+        }
+
+        roomId = validation.sanitized;
+
+        // Check if custom room name already exists
+        if (games.has(roomId)) {
+          socket.emit("error", { message: "Room name already exists. Please choose a different name." });
+          return;
+        }
+      } else {
+        // Generate random room code
+        roomId = generateRoomCode();
+      }
+
       const playerId = uuidv4();
       const game = new CardMatchGame(roomId);
 
@@ -105,7 +154,15 @@ io.on("connection", (socket) => {
   // Join an existing room
   socket.on("joinRoom", ({ roomId, playerName }) => {
     try {
-      const game = games.get(roomId);
+      let game = games.get(roomId);
+
+      // If not found and roomId looks like a traditional code, try case-insensitive search
+      if (!game && /^[A-Za-z0-9]{1,6}$/.test(roomId)) {
+        const upperRoomId = roomId.toUpperCase();
+        game = games.get(upperRoomId);
+        roomId = upperRoomId; // Use the correct case for subsequent operations
+      }
+
       if (!game) {
         throw new Error("Room not found");
       }

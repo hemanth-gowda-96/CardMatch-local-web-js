@@ -168,10 +168,16 @@ npm test
 
 ## How to Play
 
-1. **Create or Join**: One player creates a game room, others join using the room code
+1. **Create or Join**: One player creates a game room with a custom name or random code, others join using the room name/code
 2. **Start Playing**: Game starts automatically when 2+ players are ready
 3. **Strategic Gameplay**: Use our enhanced rules to outplay your opponents!
 4. **Win Condition**: Be the first to play all your cards (but remember - no winning with action cards!)
+
+### 🏠 Room Creation Options
+
+- **Custom Room Names**: Create memorable room names like "Family Game Night" or "Office Tournament" (1-20 characters)
+- **Random Codes**: Use traditional 6-character random codes (like "ABC123") for quick games
+- **Easy Joining**: Players can join using either custom room names or random codes
 
 ### 🎮 Key Gameplay Tips
 

@@ -140,7 +140,7 @@ class CardMatchClient {
   initializeUI() {
     // Welcome screen buttons
     document.getElementById("create-room-btn").addEventListener("click", () => {
-      this.createRoom();
+      this.toggleCreateForm();
     });
 
     document.getElementById("join-room-btn").addEventListener("click", () => {
@@ -151,6 +151,19 @@ class CardMatchClient {
       .getElementById("join-room-submit")
       .addEventListener("click", () => {
         this.joinRoom();
+      });
+
+    // Create room form buttons
+    document
+      .getElementById("create-room-submit")
+      .addEventListener("click", () => {
+        this.createRoom();
+      });
+
+    document
+      .getElementById("create-room-random")
+      .addEventListener("click", () => {
+        this.createRoom(true); // true = use random room name
       });
 
     // Lobby screen buttons
@@ -208,6 +221,12 @@ class CardMatchClient {
     // Enter key handlers
     document.getElementById("player-name").addEventListener("keypress", (e) => {
       if (e.key === "Enter") {
+        this.toggleCreateForm();
+      }
+    });
+
+    document.getElementById("custom-room-name").addEventListener("keypress", (e) => {
+      if (e.key === "Enter") {
         this.createRoom();
       }
     });
@@ -228,15 +247,28 @@ class CardMatchClient {
   }
 
   // Room Management
-  createRoom() {
+  toggleCreateForm() {
+    const form = document.getElementById("create-room-form");
+    form.classList.toggle("hidden");
+    if (!form.classList.contains("hidden")) {
+      document.getElementById("custom-room-name").focus();
+    }
+  }
+
+  createRoom(useRandomName = false) {
     const playerName = document.getElementById("player-name").value.trim();
     if (!playerName) {
       this.showError("Please enter your name");
       return;
     }
 
+    let customRoomName = "";
+    if (!useRandomName) {
+      customRoomName = document.getElementById("custom-room-name").value.trim();
+    }
+
     this.playerName = playerName;
-    this.socket.emit("createRoom", playerName);
+    this.socket.emit("createRoom", { playerName, customRoomName });
   }
 
   toggleJoinForm() {
@@ -251,8 +283,7 @@ class CardMatchClient {
     const playerName = document.getElementById("player-name").value.trim();
     const roomCode = document
       .getElementById("room-code")
-      .value.trim()
-      .toUpperCase();
+      .value.trim();
 
     if (!playerName) {
       this.showError("Please enter your name");
@@ -260,12 +291,15 @@ class CardMatchClient {
     }
 
     if (!roomCode) {
-      this.showError("Please enter a room code");
+      this.showError("Please enter a room code or name");
       return;
     }
 
+    // Convert to uppercase only if it looks like a traditional 6-character code (alphanumeric only)
+    const finalRoomCode = /^[A-Za-z0-9]{1,6}$/.test(roomCode) ? roomCode.toUpperCase() : roomCode;
+
     this.playerName = playerName;
-    this.socket.emit("joinRoom", { roomId: roomCode, playerName });
+    this.socket.emit("joinRoom", { roomId: finalRoomCode, playerName });
   }
 
   leaveRoom() {
